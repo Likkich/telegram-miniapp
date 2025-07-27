@@ -102,14 +102,30 @@
     }
 
     header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       font-size: 1.5em;
       font-weight: 600;
-      text-align: center;
-      padding: 16px;
-      padding-top: calc(16px + var(--safe-area-inset-top));
+      padding: 16px 16px 16px 16px;
+      padding-top: calc(20px + var(--safe-area-inset-top));
       color: var(--primary-color);
       background: var(--card-bg);
       box-shadow: 0 2px 8px var(--card-shadow);
+    }
+
+    .header-title {
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      transform: scale(0);
+      animation: scaleIn 0.5s ease forwards 0.3s;
     }
 
     main {
@@ -321,7 +337,10 @@
     <img id="splash-avatar" class="splash-avatar" alt="Аватар пользователя" />
     <div id="splash-text" class="splash-text"></div>
   </div>
-  <header id="header">BlackArchive Store</header>
+  <header id="header">
+    <span id="header-title" class="header-title">BlackArchive Store</span>
+    <img id="header-avatar" class="header-avatar" alt="Аватар пользователя" />
+  </header>
   <main id="content"></main>
   <footer>
     <button id="cart-btn" class="cart-btn" style="display:none">
@@ -382,7 +401,15 @@
         tg.expand();
       }
     });
-    // Обработка safe area
+    // Обработка изменения safe area
+    tg.onEvent('safeAreaChanged', () => {
+      console.log("Safe area изменился:", tg.safeAreaInset);
+      if (tg.safeAreaInset) {
+        document.documentElement.style.setProperty('--safe-area-inset-top', `${tg.safeAreaInset.top}px`);
+        document.documentElement.style.setProperty('--safe-area-inset-bottom', `${tg.safeAreaInset.bottom}px`);
+      }
+    });
+    // Инициализация safe area
     if (tg.safeAreaInset) {
       document.documentElement.style.setProperty('--safe-area-inset-top', `${tg.safeAreaInset.top}px`);
       document.documentElement.style.setProperty('--safe-area-inset-bottom', `${tg.safeAreaInset.bottom}px`);
@@ -432,6 +459,8 @@
   let cart = {};
   let state = { level: "categories", categoryId: null, subcategoryId: null, splashShown: false };
   const headerEl = document.getElementById("header");
+  const headerTitleEl = document.getElementById("header-title");
+  const headerAvatarEl = document.getElementById("header-avatar");
   const contentEl = document.getElementById("content");
   const cartBtn = document.getElementById("cart-btn");
   const cartCountEl = document.getElementById("cart-count");
@@ -473,6 +502,7 @@
       ? `Добро пожаловать, ${user.first_name}!`
       : "Добро пожаловать в BlackArchive Store!";
     splashAvatar.src = user?.photo_url || "https://via.placeholder.com/80";
+    headerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/40";
     
     headerEl.classList.add("hidden");
     contentEl.classList.add("hidden");
@@ -490,7 +520,7 @@
 
   function showCategories() {
     state = { ...state, level: "categories", categoryId: null, subcategoryId: null };
-    headerEl.textContent = "BlackArchive Store";
+    headerTitleEl.textContent = "BlackArchive Store";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
     tg.BackButton.hide();
 
@@ -523,7 +553,7 @@
 
   function showSubcategories(categoryId) {
     state = { ...state, level: "subcategories", categoryId, subcategoryId: null };
-    headerEl.textContent = categoryId === "games" ? "Выберите игру" : "Выберите сервис";
+    headerTitleEl.textContent = categoryId === "games" ? "Выберите игру" : "Выберите сервис";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
     tg.BackButton.show();
 
@@ -555,7 +585,7 @@
 
   function showProducts(subcategoryId) {
     state = { ...state, level: "products", categoryId: state.categoryId, subcategoryId };
-    headerEl.textContent = "Товары";
+    headerTitleEl.textContent = "Товары";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
     tg.BackButton.show();
 
@@ -586,7 +616,7 @@
 
   function showCart() {
     state = { ...state, level: "cart", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
-    headerEl.textContent = "Корзина";
+    headerTitleEl.textContent = "Корзина";
     cartBtn.style.display = "inline-flex";
     tg.BackButton.show();
 
