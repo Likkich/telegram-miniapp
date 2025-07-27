@@ -6,138 +6,195 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* Твой CSS без изменений */
     :root {
-      --bg-color: #f8f9fa;
-      --text-color: #212529;
-      --primary-color: #0088cc;
+      --bg-color: #ffffff;
+      --text-color: #1a1a1a;
+      --primary-color: #1a73e8;
       --btn-bg: var(--primary-color);
-      --btn-color: white;
-      --card-bg: white;
-      --shadow: rgba(0, 0, 0, 0.1);
+      --btn-text: #ffffff;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(0, 0, 0, 0.08);
+      --hover-bg: #f1f3f4;
+      --disabled-bg: #e0e0e0;
+      --disabled-text: #999999;
     }
+
+    /* Адаптация для тёмной темы Telegram */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #1c2526;
+        --text-color: #e0e0e0;
+        --card-bg: #2a3439;
+        --hover-bg: #3a4449;
+        --card-shadow: rgba(0, 0, 0, 0.2);
+        --disabled-bg: #4a565c;
+        --disabled-text: #777777;
+      }
+    }
+
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       user-select: none;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 12px;
+      padding: 16px;
+      box-sizing: border-box;
     }
+
     header {
-      font-weight: 700;
-      font-size: 1.3em;
-      margin-bottom: 12px;
+      font-size: 1.5em;
+      font-weight: 600;
       text-align: center;
+      margin-bottom: 16px;
       color: var(--primary-color);
     }
+
     main {
       flex: 1;
       overflow-y: auto;
+      padding-bottom: 16px;
     }
-    .disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+
     .hidden {
       display: none;
     }
+
     ul.categories, ul.subcategories, ul.products {
       list-style: none;
       padding: 0;
       margin: 0;
     }
+
     ul.categories > li,
     ul.subcategories > li,
     ul.products > li {
       background: var(--card-bg);
-      margin-bottom: 10px;
-      padding: 14px 20px;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px var(--shadow);
+      margin-bottom: 12px;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--card-shadow);
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: transform 0.2s ease, background-color 0.2s ease;
     }
+
     ul.categories > li:hover,
     ul.subcategories > li:hover,
     ul.products > li:hover {
-      background-color: #e6f0fa;
+      background-color: var(--hover-bg);
+      transform: translateY(-2px);
     }
+
+    .disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: var(--disabled-bg);
+      color: var(--disabled-text);
+    }
+
+    .disabled:hover {
+      background-color: var(--disabled-bg);
+      transform: none;
+    }
+
     .product-name {
-      font-weight: 600;
       font-size: 1.1em;
+      font-weight: 500;
     }
+
     .product-price {
-      margin-top: 6px;
-      color: #555;
-    }
-    button.add-btn {
       margin-top: 8px;
+      color: var(--text-color);
+      opacity: 0.7;
+      font-size: 0.95em;
+    }
+
+    button.add-btn {
+      margin-top: 12px;
       background: var(--btn-bg);
-      color: var(--btn-color);
+      color: var(--btn-text);
       border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
+      border-radius: 8px;
+      padding: 10px 16px;
       cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
+      font-size: 0.95em;
+      font-weight: 500;
+      transition: background-color 0.2s ease, transform 0.1s ease;
     }
+
     button.add-btn:hover {
-      background-color: #006f9a;
+      background-color: #1557b0;
+      transform: translateY(-1px);
     }
+
+    button.add-btn:active {
+      transform: translateY(0);
+    }
+
     footer {
-      padding: 10px 0;
-      border-top: 1px solid #ccc;
+      padding: 12px 0;
+      border-top: 1px solid var(--card-shadow);
       text-align: center;
       background: var(--card-bg);
-      box-shadow: 0 -1px 6px var(--shadow);
     }
+
     button.cart-btn {
       background: var(--btn-bg);
-      color: var(--btn-color);
+      color: var(--btn-text);
       border: none;
-      border-radius: 25px;
-      padding: 10px 30px;
-      font-size: 1.1em;
-      font-weight: 700;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 1em;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      transition: background-color 0.2s ease, transform 0.1s ease;
     }
+
     button.cart-btn:hover {
-      background-color: #006f9a;
+      background-color: #1557b0;
+      transform: translateY(-1px);
     }
+
     .badge {
-      background: #e53935;
+      background: #d93025;
       border-radius: 50%;
-      padding: 4px 9px;
-      color: white;
-      font-weight: 700;
+      padding: 4px 8px;
+      color: #ffffff;
+      font-weight: 600;
       font-size: 0.85em;
-      margin-left: 6px;
     }
+
     .back-btn {
       background: transparent;
       border: none;
       color: var(--primary-color);
-      font-weight: 700;
+      font-size: 1em;
+      font-weight: 500;
       cursor: pointer;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
+      display: inline-block;
+      transition: color 0.2s ease;
     }
+
     .back-btn:hover {
+      color: #1557b0;
       text-decoration: underline;
     }
+
     main::-webkit-scrollbar {
       width: 6px;
     }
+
     main::-webkit-scrollbar-thumb {
-      background: #ccc;
+      background: var(--card-shadow);
       border-radius: 3px;
     }
   </style>
@@ -197,7 +254,7 @@
     spotify: [
       { id: "spotify_premium", name: "Премиум подписка", price: 400 }
     ],
-    appstore: [] // Пустой массив для App Store (заготовка)
+    appstore: []
   };
 
   // Глобальные переменные
@@ -217,7 +274,7 @@
 
     if (!options.className) {
       btn.style.backgroundColor = "var(--btn-bg)";
-      btn.style.color = "var(--btn-color)";
+      btn.style.color = "var(--btn-text)";
     }
     if (options.style) {
       Object.assign(btn.style, options.style);
@@ -368,13 +425,13 @@
         if (cart[prod.id] > 1) {
           cart[prod.id]--;
         } else {
-          delete cart[prod.id];
+          delete cart[pid];
         }
         updateCartCount();
         showCart();
-      }, { style: { backgroundColor: "#e53935" } });
+      }, { style: { backgroundColor: "#d93025" } });
       const controlsDiv = document.createElement("div");
-      controlsDiv.style.marginTop = "8px";
+      controlsDiv.style.marginTop = "12px";
       controlsDiv.appendChild(plusBtn);
       controlsDiv.appendChild(minusBtn);
       li.appendChild(controlsDiv);
@@ -430,6 +487,12 @@
     const themeParams = tg.themeParams;
     if (themeParams.bg_color) document.body.style.backgroundColor = themeParams.bg_color;
     if (themeParams.text_color) document.body.style.color = themeParams.text_color;
+    if (themeParams.button_color) {
+      document.documentElement.style.setProperty('--btn-bg', themeParams.button_color);
+    }
+    if (themeParams.button_text_color) {
+      document.documentElement.style.setProperty('--btn-text', themeParams.button_text_color);
+    }
   }
 
   // Старт приложения
