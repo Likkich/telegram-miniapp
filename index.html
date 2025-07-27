@@ -232,12 +232,10 @@
     button.add-btn, button.cart-btn, button.back-btn {
       position: relative;
       overflow: hidden;
-      margin-top: 12px;
       background: var(--btn-bg);
       color: var(--btn-text);
       border: none;
       border-radius: 8px;
-      padding: 10px 16px;
       cursor: pointer;
       font-size: 0.95em;
       font-weight: 500;
@@ -286,10 +284,17 @@
     }
 
     button.back-btn {
-      margin-bottom: 16px;
-      display: inline-block;
-      padding: 8px 16px;
-      font-size: 0.95em;
+      margin: 24px 0 16px 0;
+      padding: 10px 20px;
+      font-size: 1em;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button.back-btn::before {
+      content: '←';
+      margin-right: 8px;
     }
 
     .badge {
@@ -330,20 +335,43 @@
     console.error("Telegram Web App не инициализирован");
   } else {
     tg.ready();
+    // Включаем системную кнопку "Назад"
+    tg.BackButton.show();
+    // Обработка нажатия на системную кнопку "Назад" или крестик
+    tg.onEvent('backButtonClicked', () => {
+      if (state.level === "subcategories") {
+        showCategories();
+      } else if (state.level === "products") {
+        showSubcategories(state.categoryId);
+      } else if (state.level === "cart") {
+        if (state.subcategoryId) {
+          showProducts(state.subcategoryId);
+        } else if (state.categoryId) {
+          showSubcategories(state.categoryId);
+        } else {
+          showCategories();
+        }
+      } else {
+        // Если на главном экране, показываем подтверждение выхода
+        tg.showConfirm("Вы уверены, что хотите выйти?", (confirmed) => {
+          if (confirmed) {
+            tg.close();
+          }
+        });
+      }
+    });
     // Попытка включить полноэкранный режим
     if (tg.requestFullscreen && tg.requestFullscreen.isAvailable && !tg.isFullscreen()) {
       tg.requestFullscreen().then(() => {
         console.log("Полноэкранный режим активирован");
       }).catch(err => {
         console.error("Ошибка при активации полноэкранного режима:", err);
-        // Резерв: растягиваем BottomSheet
         tg.expand();
       });
     } else {
-      // Резерв: растягиваем BottomSheet, если fullscreen недоступен
       tg.expand();
     }
-    // Отключаем вертикальные свайпы (для BOT API 7.7+)
+    // Отключаем вертикальные свайпы
     if (tg.disableVerticalSwipes) {
       tg.disableVerticalSwipes();
     }
@@ -351,7 +379,7 @@
     tg.onEvent('fullscreenChanged', () => {
       console.log("Статус полноэкранного режима:", tg.isFullscreen());
       if (!tg.isFullscreen()) {
-        tg.expand(); // Резервное расширение, если fullscreen не сработал
+        tg.expand();
       }
     });
     // Обработка safe area
@@ -449,6 +477,7 @@
     headerEl.classList.add("hidden");
     contentEl.classList.add("hidden");
     cartBtn.classList.add("hidden");
+    tg.BackButton.hide();
 
     setTimeout(() => {
       splashScreen.classList.add("hidden");
@@ -463,6 +492,7 @@
     state = { ...state, level: "categories", categoryId: null, subcategoryId: null };
     headerEl.textContent = "BlackArchive Store";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    tg.BackButton.hide();
 
     contentEl.innerHTML = "";
     const banner = document.createElement("img");
@@ -495,9 +525,10 @@
     state = { ...state, level: "subcategories", categoryId, subcategoryId: null };
     headerEl.textContent = categoryId === "games" ? "Выберите игру" : "Выберите сервис";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    tg.BackButton.show();
 
     contentEl.innerHTML = "";
-    const backBtn = createButton("← Назад", showCategories, { className: "back-btn" });
+    const backBtn = createButton("Назад", showCategories, { className: "back-btn" });
     contentEl.appendChild(backBtn);
 
     const category = categories.find(c => c.id === categoryId);
@@ -526,9 +557,10 @@
     state = { ...state, level: "products", categoryId: state.categoryId, subcategoryId };
     headerEl.textContent = "Товары";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    tg.BackButton.show();
 
     contentEl.innerHTML = "";
-    const backBtn = createButton("← Назад", () => showSubcategories(state.categoryId), { className: "back-btn" });
+    const backBtn = createButton("Назад", () => showSubcategories(state.categoryId), { className: "back-btn" });
     contentEl.appendChild(backBtn);
 
     const prods = products[subcategoryId];
@@ -556,9 +588,10 @@
     state = { ...state, level: "cart", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
     headerEl.textContent = "Корзина";
     cartBtn.style.display = "inline-flex";
+    tg.BackButton.show();
 
     contentEl.innerHTML = "";
-    const backBtn = createButton("← Назад", () => {
+    const backBtn = createButton("Назад", () => {
       if (state.subcategoryId) {
         showProducts(state.subcategoryId);
       } else if (state.categoryId) {
