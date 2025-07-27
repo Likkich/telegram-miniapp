@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* Твой CSS без изменений */
     :root {
       --bg-color: #f8f9fa;
       --text-color: #212529;
@@ -38,6 +39,10 @@
     main {
       flex: 1;
       overflow-y: auto;
+    }
+    .disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     .hidden {
       display: none;
@@ -128,7 +133,6 @@
     .back-btn:hover {
       text-decoration: underline;
     }
-    /* Scrollbar */
     main::-webkit-scrollbar {
       width: 6px;
     }
@@ -148,35 +152,86 @@
   </footer>
 
 <script>
-    // ...все остальное без изменений...
+  // Инициализация Telegram Web App
+  const tg = window.Telegram?.WebApp;
+  if (!tg) {
+    console.error("Telegram Web App не инициализирован");
+  } else {
+    tg.ready();
+  }
 
-  const btnStyleDefault = {
-    backgroundColor: "var(--btn-bg)",
-    color: "var(--btn-color)",
+  // Данные категорий
+  const categories = [
+    {
+      id: "games",
+      name: "Игры",
+      subcategories: [
+        { id: "fortnite", name: "Fortnite" },
+        { id: "minecraft", name: "Minecraft" }
+      ]
+    },
+    {
+      id: "services",
+      name: "Сервисы",
+      subcategories: [
+        { id: "steam", name: "Steam" },
+        { id: "spotify", name: "Spotify" },
+        { id: "appstore", name: "App Store" }
+      ]
+    }
+  ];
+
+  // Данные товаров
+  const products = {
+    fortnite: [
+      { id: "vbucks_1000", name: "1000 V-Bucks", price: 1000 },
+      { id: "vbucks_2800", name: "2800 V-Bucks", price: 2500 }
+    ],
+    minecraft: [
+      { id: "minecraft_key", name: "Ключ активации (Java+Bedrock)", price: 1500 }
+    ],
+    steam: [
+      { id: "steam_5", name: "Wallet 5$", price: 200 },
+      { id: "steam_10", name: "Wallet 10$", price: 390 }
+    ],
+    spotify: [
+      { id: "spotify_premium", name: "Премиум подписка", price: 400 }
+    ],
+    appstore: [] // Пустой массив для App Store (заготовка)
   };
 
+  // Глобальные переменные
+  let cart = {};
+  let state = { level: "categories", categoryId: null, subcategoryId: null };
+  const headerEl = document.getElementById("header");
+  const contentEl = document.getElementById("content");
+  const cartBtn = document.getElementById("cart-btn");
+  const cartCountEl = document.getElementById("cart-count");
+
+  // Функция создания кнопки
   function createButton(text, onClick, options = {}) {
     const btn = document.createElement("button");
     btn.className = options.className || "add-btn";
     btn.textContent = text;
     btn.onclick = onClick;
 
-    // Стилизуем контрастно, если это кнопка добавления
     if (!options.className) {
       btn.style.backgroundColor = "var(--btn-bg)";
       btn.style.color = "var(--btn-color)";
     }
-    // Если указали стили явно — применим
     if (options.style) {
       Object.assign(btn.style, options.style);
     }
     if (options.marginTop) btn.style.marginTop = options.marginTop;
     if (options.marginRight) btn.style.marginRight = options.marginRight;
+    if (options.disabled) {
+      btn.disabled = true;
+      btn.classList.add("disabled");
+    }
     return btn;
   }
 
-  // --- Функции отображения ---
-
+  // Отображение категорий
   function showCategories() {
     state = { level: "categories", categoryId: null, subcategoryId: null };
     headerEl.textContent = "Категории";
@@ -194,14 +249,13 @@
     contentEl.appendChild(ul);
   }
 
+  // Отображение подкатегорий
   function showSubcategories(categoryId) {
     state = { level: "subcategories", categoryId, subcategoryId: null };
-    headerEl.textContent = "Выберите игру";
+    headerEl.textContent = categoryId === "games" ? "Выберите игру" : "Выберите сервис";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
 
     contentEl.innerHTML = "";
-
-    // Добавляем кнопку "Назад" к категориям
     const backBtn = createButton("← Назад", showCategories, { className: "back-btn" });
     contentEl.appendChild(backBtn);
 
@@ -210,34 +264,31 @@
       showCategories();
       return;
     }
-    if (!category.subcategories.length) {
-      showProducts(categoryId);
-      return;
-    }
 
     const ul = document.createElement("ul");
     ul.className = "subcategories";
     category.subcategories.forEach(subcat => {
       const li = document.createElement("li");
       li.textContent = subcat.name;
-      li.onclick = () => showProducts(subcat.id);
+      if (subcat.id === "appstore") {
+        li.classList.add("disabled");
+        li.onclick = () => tg?.showAlert("App Store пока недоступен!");
+      } else {
+        li.onclick = () => showProducts(subcat.id);
+      }
       ul.appendChild(li);
     });
     contentEl.appendChild(ul);
   }
 
+  // Отображение товаров
   function showProducts(subcategoryId) {
-    state = { level: "products", subcategoryId };
+    state = { level: "products", categoryId: state.categoryId, subcategoryId };
     headerEl.textContent = "Товары";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
 
     contentEl.innerHTML = "";
-
-    // Кнопка назад: возвращает в подкатегории
-    const backBtn = createButton("← Назад", () => {
-      const catId = state.categoryId || (subcategoryId.startsWith("f") || subcategoryId.startsWith("m") ? "games" : "services");
-      showSubcategories(catId);
-    }, { className: "back-btn" });
+    const backBtn = createButton("← Назад", () => showSubcategories(state.categoryId), { className: "back-btn" });
     contentEl.appendChild(backBtn);
 
     const prods = products[subcategoryId];
@@ -248,34 +299,26 @@
 
     const ul = document.createElement("ul");
     ul.className = "products";
-
     prods.forEach(prod => {
       const li = document.createElement("li");
       li.innerHTML = `
         <div class="product-name">${prod.name}</div>
         <div class="product-price">${prod.price.toLocaleString()}₽</div>
       `;
-
-      const btn = createButton("Добавить в корзину", () => {
-        addToCart(prod.id, prod.name, prod.price);
-      });
+      const btn = createButton("Добавить в корзину", () => addToCart(prod.id, prod.name, prod.price));
       li.appendChild(btn);
       ul.appendChild(li);
     });
-
     contentEl.appendChild(ul);
   }
 
-  // --- Работа с корзиной ---
-
+  // Отображение корзины
   function showCart() {
-    state = { level: "cart" };
+    state = { level: "cart", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
     headerEl.textContent = "Корзина";
-
-    contentEl.innerHTML = "";
     cartBtn.style.display = "inline-flex";
 
-    // Кнопка назад: вернуть в зависимости от уровня (если была категория, вернём туда, иначе в категории)
+    contentEl.innerHTML = "";
     const backBtn = createButton("← Назад", () => {
       if (state.subcategoryId) {
         showProducts(state.subcategoryId);
@@ -297,9 +340,7 @@
           break;
         }
       }
-      if (!prod) continue;
-
-      productList.push({ ...prod, qty: cart[pid] });
+      if (prod) productList.push({ ...prod, qty: cart[pid] });
     }
 
     if (productList.length === 0) {
@@ -310,7 +351,6 @@
 
     const ul = document.createElement("ul");
     ul.className = "products";
-
     productList.forEach(prod => {
       const li = document.createElement("li");
       li.innerHTML = `
@@ -319,13 +359,11 @@
         <div>Цена за единицу: ${prod.price.toLocaleString()}₽</div>
         <div>Итого: ${(prod.price * prod.qty).toLocaleString()}₽</div>
       `;
-
       const plusBtn = createButton("+", () => {
         cart[prod.id]++;
         updateCartCount();
         showCart();
       }, { style: { marginRight: "8px" } });
-
       const minusBtn = createButton("−", () => {
         if (cart[prod.id] > 1) {
           cart[prod.id]--;
@@ -335,71 +373,68 @@
         updateCartCount();
         showCart();
       }, { style: { backgroundColor: "#e53935" } });
-
       const controlsDiv = document.createElement("div");
       controlsDiv.style.marginTop = "8px";
       controlsDiv.appendChild(plusBtn);
       controlsDiv.appendChild(minusBtn);
-
       li.appendChild(controlsDiv);
       ul.appendChild(li);
     });
-
     contentEl.appendChild(ul);
 
     const orderBtn = createButton("🛒 Оформить заказ", submitOrder, { marginTop: "20px" });
     contentEl.appendChild(orderBtn);
   }
 
-  // --- Обычные функции ---
-
+  // Добавление в корзину
   function addToCart(productId, productName, productPrice) {
     cart[productId] = (cart[productId] || 0) + 1;
     updateCartCount();
-    tg.showAlert(`✅ Товар "${productName}" добавлен в корзину!`);
+    if (tg) {
+      tg.showAlert(`✅ Товар "${productName}" добавлен в корзину!`);
+    }
     cartBtn.style.display = "inline-flex";
   }
 
+  // Обновление счётчика корзины
   function updateCartCount() {
     const count = Object.values(cart).reduce((a, b) => a + b, 0);
     cartCountEl.textContent = count;
   }
 
+  // Отправка заказа
   function submitOrder() {
     if (Object.keys(cart).length === 0) {
-      tg.showAlert("Корзина пуста!");
+      if (tg) tg.showAlert("Корзина пуста!");
       return;
     }
 
-    tg.sendData(JSON.stringify({
-      action: "submit_order",
-      items: cart
-    }));
-
-    tg.showAlert("✅ Заказ отправлен! Спасибо :)");
+    if (tg) {
+      tg.sendData(JSON.stringify({
+        action: "submit_order",
+        items: cart
+      }));
+      tg.showAlert("✅ Заказ отправлен! Спасибо :)");
+    }
 
     cart = {};
     updateCartCount();
     showCategories();
   }
 
-  // --- Кнопка корзины ---
+  // Обработчик кнопки корзины
   cartBtn.onclick = showCart;
 
-  // --- Старт ---
+  // Инициализация темы Telegram
+  if (tg && tg.themeParams) {
+    const themeParams = tg.themeParams;
+    if (themeParams.bg_color) document.body.style.backgroundColor = themeParams.bg_color;
+    if (themeParams.text_color) document.body.style.color = themeParams.text_color;
+  }
+
+  // Старт приложения
   showCategories();
   updateCartCount();
-
-  // --- Темы Telegram ---
-  const themeParams = tg.themeParams || {};
-  if (themeParams.bg_color) {
-    document.body.style.backgroundColor = themeParams.bg_color;
-  }
-  if (themeParams.text_color) {
-    document.body.style.color = themeParams.text_color;
-  }
-
-
 </script>
 </body>
 </html>
