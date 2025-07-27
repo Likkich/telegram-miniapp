@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Магазин</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: var(--tg-theme-bg-color);
+      color: var(--tg-theme-text-color);
+      padding: 20px;
+    }
+    .product {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+    button {
+      margin-top: 10px;
+      background: #0088cc;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🛍 Каталог</h2>
+  <div id="catalog"></div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const products = [
+      { id: 1, name: "💎 V-баксы Fortnite", price: 100 },
+      { id: 2, name: "🔑 Minecraft Premium", price: 500 },
+      { id: 3, name: "🎮 Steam Wallet", price: 200 }
+    ];
+
+    const catalogDiv = document.getElementById("catalog");
+
+    products.forEach(p => {
+      const el = document.createElement("div");
+      el.className = "product";
+      el.innerHTML = `
+        <strong>${p.name}</strong><br>
+        Цена: ${p.price}₽<br>
+        <button onclick="addToCart(${p.id})">Добавить</button>
+      `;
+      catalogDiv.appendChild(el);
+    });
+
+    function addToCart(id) {
+      tg.sendData(JSON.stringify({
+        action: "add_to_cart",
+        product_id: id
+      }));
+    }
+  </script>
+</body>
+</html>
