@@ -7,27 +7,29 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #ffffff;
-      --text-color: #1a1a1a;
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
       --primary-color: #1a73e8;
       --btn-bg: var(--primary-color);
       --btn-text: #ffffff;
-      --card-bg: #ffffff;
-      --card-shadow: rgba(0, 0, 0, 0.08);
-      --hover-bg: #f1f3f4;
-      --disabled-bg: #e0e0e0;
-      --disabled-text: #999999;
+      --card-bg: #1e1e1e;
+      --card-shadow: rgba(0, 0, 0, 0.3);
+      --hover-bg: #2a2a2a;
+      --disabled-bg: #333333;
+      --disabled-text: #777777;
+      --welcome-bg: #1e1e1e;
     }
 
-    @media (prefers-color-scheme: dark) {
+    @media (prefers-color-scheme: light) {
       :root {
-        --bg-color: #1c2526;
+        --bg-color: #121212; /* Сохраняем тёмный фон */
         --text-color: #e0e0e0;
-        --card-bg: #2a3439;
-        --hover-bg: #3a4449;
-        --card-shadow: rgba(0, 0, 0, 0.2);
-        --disabled-bg: #4a565c;
+        --card-bg: #1e1e1e;
+        --hover-bg: #2a2a2a;
+        --card-shadow: rgba(0, 0, 0, 0.3);
+        --disabled-bg: #333333;
         --disabled-text: #777777;
+        --welcome-bg: #1e1e1e;
       }
     }
 
@@ -71,6 +73,18 @@
       box-shadow: 0 2px 8px var(--card-shadow);
     }
 
+    .welcome-message {
+      background: var(--welcome-bg);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-size: 1em;
+      font-weight: 400;
+      line-height: 1.5;
+      box-shadow: 0 2px 8px var(--card-shadow);
+    }
+
     .categories-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -89,6 +103,8 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
+      position: relative;
+      overflow: hidden;
     }
 
     .category-card:hover {
@@ -124,6 +140,8 @@
       box-shadow: 0 2px 8px var(--card-shadow);
       cursor: pointer;
       transition: transform 0.2s ease, background-color 0.2s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     ul.subcategories > li:hover,
@@ -156,7 +174,9 @@
       font-size: 0.95em;
     }
 
-    button.add-btn {
+    button.add-btn, button.cart-btn, button.back-btn {
+      position: relative;
+      overflow: hidden;
       margin-top: 12px;
       background: var(--btn-bg);
       color: var(--btn-text);
@@ -169,40 +189,43 @@
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
 
-    button.add-btn:hover {
+    button.add-btn:hover, button.cart-btn:hover, button.back-btn:hover {
       background-color: #1557b0;
       transform: translateY(-1px);
     }
 
-    button.add-btn:active {
-      transform: translateY(0);
+    button.add-btn:active, button.cart-btn:active, button.back-btn:active {
+      transform: scale(0.95);
     }
 
-    footer {
-      padding: 12px 16px;
-      border-top: 1px solid var(--card-shadow);
-      text-align: center;
-      background: var(--card-bg);
+    /* Ripple effect */
+    button.add-btn::after, button.cart-btn::after, button.back-btn::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    button.add-btn:active::after, button.cart-btn:active::after, button.back-btn:active::after {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
     button.cart-btn {
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      border: none;
-      border-radius: 12px;
       padding: 12px 24px;
       font-size: 1em;
       font-weight: 600;
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: background-color 0.2s ease, transform 0.1s ease;
-    }
-
-    button.cart-btn:hover {
-      background-color: #1557b0;
-      transform: translateY(-1px);
     }
 
     .badge {
@@ -214,21 +237,11 @@
       font-size: 0.85em;
     }
 
-    .back-btn {
-      background: transparent;
-      border: none;
-      color: var(--primary-color);
-      font-size: 1em;
-      font-weight: 500;
-      cursor: pointer;
+    button.back-btn {
       margin-bottom: 16px;
       display: inline-block;
-      transition: color 0.2s ease;
-    }
-
-    .back-btn:hover {
-      color: #1557b0;
-      text-decoration: underline;
+      padding: 8px 16px;
+      font-size: 0.95em;
     }
 
     main::-webkit-scrollbar {
@@ -339,6 +352,11 @@
     banner.className = "banner";
     contentEl.appendChild(banner);
 
+    const welcome = document.createElement("div");
+    welcome.className = "welcome-message";
+    welcome.textContent = "Добро пожаловать в BlackArchive Store! Выберите интересующую категорию ниже.";
+    contentEl.appendChild(welcome);
+
     const container = document.createElement("div");
     container.className = "categories-container";
     categories.forEach(cat => {
@@ -375,7 +393,7 @@
       const li = document.createElement("li");
       li.textContent = subcat.name;
       if (subcat.id === "appstore") {
-        li.classList.add("disabled");
+        li.className = "disabled";
         li.onclick = () => tg?.showAlert("App Store пока недоступен!");
       } else {
         li.onclick = () => showProducts(subcat.id);
@@ -525,8 +543,6 @@
 
   if (tg && tg.themeParams) {
     const themeParams = tg.themeParams;
-    if (themeParams.bg_color) document.body.style.backgroundColor = themeParams.bg_color;
-    if (themeParams.text_color) document.body.style.color = themeParams.text_color;
     if (themeParams.button_color) {
       document.documentElement.style.setProperty('--btn-bg', themeParams.button_color);
     }
