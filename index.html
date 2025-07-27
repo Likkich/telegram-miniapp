@@ -148,49 +148,32 @@
   </footer>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+    // ...все остальное без изменений...
 
-  // Данные категорий и товаров
-  const categories = [
-    { id: "games", name: "Игры", subcategories: [
-      { id: "fortnite", name: "Fortnite" },
-      { id: "minecraft", name: "Minecraft" },
-    ]},
-    { id: "services", name: "Сервисы", subcategories: [
-      { id: "steam", name: "Steam" },
-      { id: "appstore", name: "App Store" },
-      { id: "spotify", name: "Spotify" },
-    ]}
-  ];
-
-  const products = {
-    fortnite: [
-      { id: "f1000", name: "1000 V-Bucks", price: 1000 },
-      { id: "f2800", name: "2800 V-Bucks", price: 2500 }
-    ],
-    minecraft: [
-      { id: "mkey", name: "Ключ активации (Java+Bedrock)", price: 1500 }
-    ],
-    steam: [
-      { id: "sw5", name: "Wallet 5$", price: 200 },
-      { id: "sw10", name: "Wallet 10$", price: 390 }
-    ],
-    appstore: [
-      // Пока пусто, только заглушка
-    ],
-    spotify: [
-      { id: "spremium", name: "Премиум подписка — 400₽/мес.", price: 400 }
-    ]
+  const btnStyleDefault = {
+    backgroundColor: "var(--btn-bg)",
+    color: "var(--btn-color)",
   };
 
-  let cart = {}; // { productId: qty }
-  let state = { level: "categories", categoryId: null, subcategoryId: null };
+  function createButton(text, onClick, options = {}) {
+    const btn = document.createElement("button");
+    btn.className = options.className || "add-btn";
+    btn.textContent = text;
+    btn.onclick = onClick;
 
-  const headerEl = document.getElementById("header");
-  const contentEl = document.getElementById("content");
-  const cartBtn = document.getElementById("cart-btn");
-  const cartCountEl = document.getElementById("cart-count");
+    // Стилизуем контрастно, если это кнопка добавления
+    if (!options.className) {
+      btn.style.backgroundColor = "var(--btn-bg)";
+      btn.style.color = "var(--btn-color)";
+    }
+    // Если указали стили явно — применим
+    if (options.style) {
+      Object.assign(btn.style, options.style);
+    }
+    if (options.marginTop) btn.style.marginTop = options.marginTop;
+    if (options.marginRight) btn.style.marginRight = options.marginRight;
+    return btn;
+  }
 
   // --- Функции отображения ---
 
@@ -217,13 +200,17 @@
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
 
     contentEl.innerHTML = "";
+
+    // Добавляем кнопку "Назад" к категориям
+    const backBtn = createButton("← Назад", showCategories, { className: "back-btn" });
+    contentEl.appendChild(backBtn);
+
     const category = categories.find(c => c.id === categoryId);
     if (!category) {
       showCategories();
       return;
     }
     if (!category.subcategories.length) {
-      // Нет подкатегорий, сразу показываем товары
       showProducts(categoryId);
       return;
     }
@@ -245,9 +232,17 @@
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
 
     contentEl.innerHTML = "";
+
+    // Кнопка назад: возвращает в подкатегории
+    const backBtn = createButton("← Назад", () => {
+      const catId = state.categoryId || (subcategoryId.startsWith("f") || subcategoryId.startsWith("m") ? "games" : "services");
+      showSubcategories(catId);
+    }, { className: "back-btn" });
+    contentEl.appendChild(backBtn);
+
     const prods = products[subcategoryId];
     if (!prods || prods.length === 0) {
-      contentEl.textContent = "Товары отсутствуют.";
+      contentEl.appendChild(document.createTextNode("Товары отсутствуют."));
       return;
     }
 
@@ -261,13 +256,9 @@
         <div class="product-price">${prod.price.toLocaleString()}₽</div>
       `;
 
-      const btn = document.createElement("button");
-      btn.className = "add-btn";
-      btn.textContent = "Добавить в корзину";
-      btn.onclick = () => {
+      const btn = createButton("Добавить в корзину", () => {
         addToCart(prod.id, prod.name, prod.price);
-      };
-
+      });
       li.appendChild(btn);
       ul.appendChild(li);
     });
@@ -277,18 +268,6 @@
 
   // --- Работа с корзиной ---
 
-  function addToCart(productId, productName, productPrice) {
-    cart[productId] = (cart[productId] || 0) + 1;
-    updateCartCount();
-    tg.showAlert(`✅ Товар "${productName}" добавлен в корзину!`);
-    cartBtn.style.display = "inline-flex";
-  }
-
-  function updateCartCount() {
-    const count = Object.values(cart).reduce((a, b) => a + b, 0);
-    cartCountEl.textContent = count;
-  }
-
   function showCart() {
     state = { level: "cart" };
     headerEl.textContent = "Корзина";
@@ -296,11 +275,21 @@
     contentEl.innerHTML = "";
     cartBtn.style.display = "inline-flex";
 
+    // Кнопка назад: вернуть в зависимости от уровня (если была категория, вернём туда, иначе в категории)
+    const backBtn = createButton("← Назад", () => {
+      if (state.subcategoryId) {
+        showProducts(state.subcategoryId);
+      } else if (state.categoryId) {
+        showSubcategories(state.categoryId);
+      } else {
+        showCategories();
+      }
+    }, { className: "back-btn" });
+    contentEl.appendChild(backBtn);
+
     const productList = [];
-    // Составим список товаров в корзине с названиями и ценами
     for (const pid in cart) {
       let prod = null;
-      // Найдем товар по id
       for (const catId in products) {
         const p = products[catId].find(pr => pr.id === pid);
         if (p) {
@@ -314,7 +303,7 @@
     }
 
     if (productList.length === 0) {
-      contentEl.textContent = "Ваша корзина пуста.";
+      contentEl.appendChild(document.createTextNode("Ваша корзина пуста."));
       cartBtn.style.display = "none";
       return;
     }
@@ -331,22 +320,13 @@
         <div>Итого: ${(prod.price * prod.qty).toLocaleString()}₽</div>
       `;
 
-      // Кнопки + и -
-      const plusBtn = document.createElement("button");
-      plusBtn.className = "add-btn";
-      plusBtn.textContent = "+";
-      plusBtn.style.marginRight = "8px";
-      plusBtn.onclick = () => {
+      const plusBtn = createButton("+", () => {
         cart[prod.id]++;
         updateCartCount();
         showCart();
-      };
+      }, { style: { marginRight: "8px" } });
 
-      const minusBtn = document.createElement("button");
-      minusBtn.className = "add-btn";
-      minusBtn.textContent = "−";
-      minusBtn.style.backgroundColor = "#e53935";
-      minusBtn.onclick = () => {
+      const minusBtn = createButton("−", () => {
         if (cart[prod.id] > 1) {
           cart[prod.id]--;
         } else {
@@ -354,7 +334,7 @@
         }
         updateCartCount();
         showCart();
-      };
+      }, { style: { backgroundColor: "#e53935" } });
 
       const controlsDiv = document.createElement("div");
       controlsDiv.style.marginTop = "8px";
@@ -367,37 +347,30 @@
 
     contentEl.appendChild(ul);
 
-    // Кнопка оформить заказ
-    const orderBtn = document.createElement("button");
-    orderBtn.className = "add-btn";
-    orderBtn.textContent = "🛒 Оформить заказ";
-    orderBtn.style.marginTop = "20px";
-    orderBtn.onclick = submitOrder;
-
+    const orderBtn = createButton("🛒 Оформить заказ", submitOrder, { marginTop: "20px" });
     contentEl.appendChild(orderBtn);
+  }
 
-    // Кнопка назад
-    const backBtn = document.createElement("button");
-    backBtn.className = "back-btn";
-    backBtn.textContent = "← Назад";
-    backBtn.onclick = () => {
-      if (state.categoryId) {
-        showSubcategories(state.categoryId);
-      } else {
-        showCategories();
-      }
-    };
-    contentEl.appendChild(backBtn);
+  // --- Обычные функции ---
+
+  function addToCart(productId, productName, productPrice) {
+    cart[productId] = (cart[productId] || 0) + 1;
+    updateCartCount();
+    tg.showAlert(`✅ Товар "${productName}" добавлен в корзину!`);
+    cartBtn.style.display = "inline-flex";
+  }
+
+  function updateCartCount() {
+    const count = Object.values(cart).reduce((a, b) => a + b, 0);
+    cartCountEl.textContent = count;
   }
 
   function submitOrder() {
-    // Формируем заказ в формате { productId: qty }
     if (Object.keys(cart).length === 0) {
       tg.showAlert("Корзина пуста!");
       return;
     }
 
-    // Отправляем данные боту через WebApp.sendData()
     tg.sendData(JSON.stringify({
       action: "submit_order",
       items: cart
@@ -405,18 +378,15 @@
 
     tg.showAlert("✅ Заказ отправлен! Спасибо :)");
 
-    // Очищаем корзину
     cart = {};
     updateCartCount();
-
-    // Возвращаемся к категориям
     showCategories();
   }
 
-  // --- Обработчик нажатия кнопки корзины внизу ---
+  // --- Кнопка корзины ---
   cartBtn.onclick = showCart;
 
-  // --- Запускаем ---
+  // --- Старт ---
   showCategories();
   updateCartCount();
 
@@ -428,6 +398,7 @@
   if (themeParams.text_color) {
     document.body.style.color = themeParams.text_color;
   }
+
 
 </script>
 </body>
