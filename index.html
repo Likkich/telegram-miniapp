@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Мини-магазин</title>
+  <title>BlackArchive Store</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -19,7 +19,6 @@
       --disabled-text: #999999;
     }
 
-    /* Адаптация для тёмной темы Telegram */
     @media (prefers-color-scheme: dark) {
       :root {
         --bg-color: #1c2526;
@@ -43,7 +42,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 16px;
+      padding: 0;
       box-sizing: border-box;
     }
 
@@ -51,27 +50,71 @@
       font-size: 1.5em;
       font-weight: 600;
       text-align: center;
-      margin-bottom: 16px;
+      padding: 16px;
       color: var(--primary-color);
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px var(--card-shadow);
     }
 
     main {
       flex: 1;
       overflow-y: auto;
-      padding-bottom: 16px;
+      padding: 16px;
+    }
+
+    .banner {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px var(--card-shadow);
+    }
+
+    .categories-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+
+    .category-card {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--card-shadow);
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-card:hover {
+      background-color: var(--hover-bg);
+      transform: translateY(-2px);
+    }
+
+    .category-icon {
+      font-size: 2em;
+    }
+
+    .category-name {
+      font-size: 1.1em;
+      font-weight: 500;
     }
 
     .hidden {
       display: none;
     }
 
-    ul.categories, ul.subcategories, ul.products {
+    ul.subcategories, ul.products {
       list-style: none;
       padding: 0;
       margin: 0;
     }
 
-    ul.categories > li,
     ul.subcategories > li,
     ul.products > li {
       background: var(--card-bg);
@@ -83,7 +126,6 @@
       transition: transform 0.2s ease, background-color 0.2s ease;
     }
 
-    ul.categories > li:hover,
     ul.subcategories > li:hover,
     ul.products > li:hover {
       background-color: var(--hover-bg);
@@ -137,7 +179,7 @@
     }
 
     footer {
-      padding: 12px 0;
+      padding: 12px 16px;
       border-top: 1px solid var(--card-shadow);
       text-align: center;
       background: var(--card-bg);
@@ -200,7 +242,7 @@
   </style>
 </head>
 <body>
-  <header id="header">Категории</header>
+  <header id="header">BlackArchive Store</header>
   <main id="content"></main>
   <footer>
     <button id="cart-btn" class="cart-btn" style="display:none">
@@ -209,7 +251,6 @@
   </footer>
 
 <script>
-  // Инициализация Telegram Web App
   const tg = window.Telegram?.WebApp;
   if (!tg) {
     console.error("Telegram Web App не инициализирован");
@@ -217,11 +258,11 @@
     tg.ready();
   }
 
-  // Данные категорий
   const categories = [
     {
       id: "games",
       name: "Игры",
+      icon: "🎮",
       subcategories: [
         { id: "fortnite", name: "Fortnite" },
         { id: "minecraft", name: "Minecraft" }
@@ -230,6 +271,7 @@
     {
       id: "services",
       name: "Сервисы",
+      icon: "🌪",
       subcategories: [
         { id: "steam", name: "Steam" },
         { id: "spotify", name: "Spotify" },
@@ -238,7 +280,6 @@
     }
   ];
 
-  // Данные товаров
   const products = {
     fortnite: [
       { id: "vbucks_1000", name: "1000 V-Bucks", price: 1000 },
@@ -257,7 +298,6 @@
     appstore: []
   };
 
-  // Глобальные переменные
   let cart = {};
   let state = { level: "categories", categoryId: null, subcategoryId: null };
   const headerEl = document.getElementById("header");
@@ -265,7 +305,6 @@
   const cartBtn = document.getElementById("cart-btn");
   const cartCountEl = document.getElementById("cart-count");
 
-  // Функция создания кнопки
   function createButton(text, onClick, options = {}) {
     const btn = document.createElement("button");
     btn.className = options.className || "add-btn";
@@ -288,25 +327,33 @@
     return btn;
   }
 
-  // Отображение категорий
   function showCategories() {
     state = { level: "categories", categoryId: null, subcategoryId: null };
-    headerEl.textContent = "Категории";
+    headerEl.textContent = "BlackArchive Store";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
 
     contentEl.innerHTML = "";
-    const ul = document.createElement("ul");
-    ul.className = "categories";
+    const banner = document.createElement("img");
+    banner.src = "banner.jpg"; // Замени на свой URL баннера
+    banner.alt = "Баннер магазина";
+    banner.className = "banner";
+    contentEl.appendChild(banner);
+
+    const container = document.createElement("div");
+    container.className = "categories-container";
     categories.forEach(cat => {
-      const li = document.createElement("li");
-      li.textContent = cat.name;
-      li.onclick = () => showSubcategories(cat.id);
-      ul.appendChild(li);
+      const card = document.createElement("div");
+      card.className = "category-card";
+      card.innerHTML = `
+        <div class="category-icon">${cat.icon}</div>
+        <div class="category-name">${cat.name}</div>
+      `;
+      card.onclick = () => showSubcategories(cat.id);
+      container.appendChild(card);
     });
-    contentEl.appendChild(ul);
+    contentEl.appendChild(container);
   }
 
-  // Отображение подкатегорий
   function showSubcategories(categoryId) {
     state = { level: "subcategories", categoryId, subcategoryId: null };
     headerEl.textContent = categoryId === "games" ? "Выберите игру" : "Выберите сервис";
@@ -338,7 +385,6 @@
     contentEl.appendChild(ul);
   }
 
-  // Отображение товаров
   function showProducts(subcategoryId) {
     state = { level: "products", categoryId: state.categoryId, subcategoryId };
     headerEl.textContent = "Товары";
@@ -369,7 +415,6 @@
     contentEl.appendChild(ul);
   }
 
-  // Отображение корзины
   function showCart() {
     state = { level: "cart", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
     headerEl.textContent = "Корзина";
@@ -443,7 +488,6 @@
     contentEl.appendChild(orderBtn);
   }
 
-  // Добавление в корзину
   function addToCart(productId, productName, productPrice) {
     cart[productId] = (cart[productId] || 0) + 1;
     updateCartCount();
@@ -453,13 +497,11 @@
     cartBtn.style.display = "inline-flex";
   }
 
-  // Обновление счётчика корзины
   function updateCartCount() {
     const count = Object.values(cart).reduce((a, b) => a + b, 0);
     cartCountEl.textContent = count;
   }
 
-  // Отправка заказа
   function submitOrder() {
     if (Object.keys(cart).length === 0) {
       if (tg) tg.showAlert("Корзина пуста!");
@@ -479,10 +521,8 @@
     showCategories();
   }
 
-  // Обработчик кнопки корзины
   cartBtn.onclick = showCart;
 
-  // Инициализация темы Telegram
   if (tg && tg.themeParams) {
     const themeParams = tg.themeParams;
     if (themeParams.bg_color) document.body.style.backgroundColor = themeParams.bg_color;
@@ -495,7 +535,6 @@
     }
   }
 
-  // Старт приложения
   showCategories();
   updateCartCount();
 </script>
