@@ -7,9 +7,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #d45100; /* Фон */
+      --bg-color: #ffa269; /* Фон */
       --text-color: #f5f5f5; /* Светлый текст для читаемости */
-      --primary-color: #b34100; /* Цвет кнопок */
+      --primary-color: #a600a0; /* Цвет кнопок */
       --btn-bg: var(--primary-color);
       --btn-text: #ffffff;
       --btn-hover: #e56300; /* Hover для кнопок */
@@ -27,7 +27,7 @@
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg-color: #d45100;
+        --bg-color: #ffa269;
         --text-color: #f5f5f5;
         --card-bg: #ff8c38;
         --card-hover: #ff7b24;
@@ -623,12 +623,12 @@
   <div id="help-modal" class="modal">
     <div class="modal-content">
       <button id="modal-close" class="modal-close">×</button>
-      <h2>Как играть в BlackCoin Кликер</h2>
-      <p>Цель игры — собирать BlackCoin, кликая по монете. Вот основные правила:</p>
+      <h2>Как играть в Danke Coin Кликер</h2>
+      <p>Цель игры — собирать Danke Coin, кликая по монете. Вот основные правила:</p>
       <p>
-        <strong>Клик по монете:</strong> Каждый клик добавляет 1 BlackCoin, но тратит 1 единицу энергии. Энергия восстанавливается автоматически (1 единица каждые 5 минут, максимум 100).<br>
-        <strong>Дневной лимит:</strong> Вы можете заработать до 200 BlackCoin в день. Лимит сбрасывается ежедневно.<br>
-        <strong>Конвертация:</strong> Наберите 100 BlackCoin и обменяйте их на 2₽ для покупок в магазине.<br>
+        <strong>Клик по монете:</strong> Каждый клик добавляет 1 Danke Coin, но тратит 1 единицу энергии. Энергия восстанавливается автоматически (1 единица каждые 5 минут, максимум 100).<br>
+        <strong>Дневной лимит:</strong> Вы можете заработать до 200 Danke Coin в день. Лимит сбрасывается ежедневно.<br>
+        <strong>Конвертация:</strong> Наберите 100 Danke Coin и обменяйте их на 2₽ для покупок в магазине.<br>
         <strong>Покупка энергии:</strong> Если энергия закончилась, вы можете купить 50 энергии за 10₽.<br>
         <strong>Совет:</strong> Кликайте активно, но следите за энергией и лимитом, чтобы максимизировать заработок!
       </p>
@@ -738,7 +738,7 @@
   let cart = {};
   let balance = 0;
   let orders = [];
-  let blackCoins = parseInt(localStorage.getItem('blackCoins') || '0');
+  let dankecoins = parseInt(localStorage.getItem('dankecoins') || '0');
   let energy = parseInt(localStorage.getItem('energy') || '100');
   let dailyCoins = parseInt(localStorage.getItem('dailyCoins') || '0');
   let lastClickTime = parseInt(localStorage.getItem('lastClickTime') || '0');
@@ -787,7 +787,7 @@
   }
 
   function saveClickerData() {
-    localStorage.setItem('blackCoins', blackCoins);
+    localStorage.setItem('dankecoins', dankecoin);
     localStorage.setItem('energy', energy);
     localStorage.setItem('dailyCoins', dailyCoins);
     localStorage.setItem('lastClickTime', lastClickTime);
@@ -903,7 +903,7 @@
     clickerBtn.style.marginTop = "16px";
     clickerBtn.innerHTML = `
       <div class="category-icon">💰</div>
-      <div class="category-name">BlackCoin Кликер</div>
+      <div class="category-name">Danke Coin Кликер</div>
     `;
     clickerBtn.onclick = () => {
       console.log("Clicker button clicked");
@@ -1098,7 +1098,7 @@
       <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Аватар пользователя" />
       <div class="profile-name">${user?.first_name || 'Пользователь'}</div>
       <div class="profile-balance">Баланс: ${balance.toLocaleString()}₽</div>
-      <div class="profile-balance">BlackCoin: ${blackCoins}</div>
+      <div class="profile-balance">Danke Coin: ${dankecoins}</div>
     `;
     const topUpBtn = createButton("Пополнить баланс", topUpBalance, { marginTop: "16px" });
     container.appendChild(topUpBtn);
@@ -1131,7 +1131,7 @@
   function showClicker() {
     console.log("Showing clicker");
     state = { ...state, level: "clicker", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
-    headerTitleEl.textContent = "BlackCoin Кликер";
+    headerTitleEl.textContent = "Danke Coin Кликер";
     cartCountEl.classList.toggle("hidden", Object.keys(cart).length === 0);
     profileBtn.style.display = "flex";
     tg.BackButton.show();
@@ -1147,7 +1147,7 @@
       const message = document.createElement("div");
       message.className = "desktop-message";
       message.innerHTML = `
-        <p>Ой, извини, но в BlackCoin можно играть только с телефона, так удобней. Но не отчаивайся, ты всё ещё можешь пользоваться нашим магазином!</p>
+        <p>Ой, извини, но в Danke Coin можно играть только с телефона, так удобней. Но не отчаивайся, ты всё ещё можешь пользоваться нашим магазином!</p>
       `;
       const backBtn2 = createButton("Назад", () => {
         console.log("Back button clicked from desktop message");
@@ -1172,7 +1172,7 @@
     container.innerHTML = `
       <img src="assets/blackcoin.png" class="clicker-coin" alt="BlackCoin" />
       <div class="clicker-stats">
-        BlackCoin: ${blackCoins}<br>
+        Danke Coin: ${dankecoins}<br>
         Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       </div>
@@ -1195,13 +1195,13 @@
         tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра.");
         return;
       }
-      blackCoins++;
+      dankecoins++;
       dailyCoins++;
       energy--;
       lastClickTime = Date.now();
       saveClickerData();
       container.querySelector('.clicker-stats').innerHTML = `
-        BlackCoin: ${blackCoins}<br>
+        Danke Coin: ${dankecoins}<br>
         Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
@@ -1218,13 +1218,13 @@
 
     const convertBtn = document.createElement("button");
     convertBtn.className = "add-btn";
-    convertBtn.textContent = "Конвертировать 100 BlackCoin в 2₽";
+    convertBtn.textContent = "Конвертировать 100 Danke Coin в 2₽";
     convertBtn.style.marginTop = "16px";
     convertBtn.onclick = () => {
       console.log("Convert button clicked");
       convertCoins();
     };
-    convertBtn.disabled = blackCoins < 100;
+    convertBtn.disabled = dankecoins < 100;
     const buyEnergyBtn = document.createElement("button");
     buyEnergyBtn.className = "add-btn";
     buyEnergyBtn.textContent = "Купить 50 энергии за 10₽";
@@ -1240,7 +1240,7 @@
     setInterval(() => {
       updateEnergy();
       container.querySelector('.clicker-stats').innerHTML = `
-        BlackCoin: ${blackCoins}<br>
+        Danke Coin: ${dankecoins}<br>
         Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
@@ -1248,11 +1248,11 @@
   }
 
   function convertCoins() {
-    if (blackCoins < 100) {
-      tg?.showAlert("Нужно минимум 100 BlackCoin для конвертации!");
+    if (dankecoins < 100) {
+      tg?.showAlert("Нужно минимум 100 Danke Coin для конвертации!");
       return;
     }
-    blackCoins -= 100;
+    dankecoins -= 100;
     balance += 2;
     saveClickerData();
     tg?.sendData(JSON.stringify({
@@ -1260,7 +1260,7 @@
       coins: 100,
       rubles: 2
     }));
-    tg?.showAlert("✅ 100 BlackCoin конвертировано в 2₽!");
+    tg?.showAlert("✅ 100 Danke Coin конвертировано в 2₽!");
     showClicker();
   }
 
