@@ -741,7 +741,7 @@
     clickerBtn.style.marginTop = "16px";
     clickerBtn.innerHTML = `
       <div class="category-icon">💰</div>
-      <div class="category-name">BlackCoin Кликер</div>
+      <div class="category-name">BlackCoin</div>
     `;
     clickerBtn.onclick = showClicker;
     contentEl.appendChild(clickerBtn);
@@ -911,7 +911,7 @@
     const container = document.createElement("div");
     container.className = "profile-container";
     container.innerHTML = `
-      <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Profile Avatar" />
+      <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Аватар пользователя" />
       <div class="profile-name">${user?.first_name || 'Пользователь'}</div>
       <div class="profile-balance">Баланс: ${balance.toLocaleString()}₽</div>
       <div class="profile-balance">BlackCoin: ${blackCoins}</div>
@@ -960,9 +960,9 @@
 
     const container = document.createElement("div");
     container.className = "clicker-container";
-    // Иконка BlackCoin: должна быть 512x256px PNG с прозрачным фоном, добавить в assets/blackcoin.png
+    // Иконка BlackCoin: должна быть 512x512px PNG с прозрачным фоном, добавить в assets/blackcoin.png
     container.innerHTML = `
-      <img src="https://i.imgur.com/BRQ3Q.png" class="clicker-coin" alt="BlackCoin" />
+      <img src="assets/blackcoin.png" class="clicker-coin" alt="BlackCoin" />
       <div class="clicker-stats">
         BlackCoin: ${blackCoins}<br>
         Энергия: ${energy}/100<br>
@@ -979,21 +979,19 @@
         tg?.showAlert("Энергия закончилась! Дождитесь восстановления или купите энергию.");
         return;
       }
-      if (dailyCoins >= 0) {
-        tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра!");
+      if (dailyCoins >= 200) {
+        tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра.");
         return;
       }
-
       // Защита от автокликеров: пока ограничена энергией и дневным лимитом, серверная валидация нужна для полной защиты
       blackCoins++;
       dailyCoins++;
       energy--;
       lastClickTime = Date.now();
       saveClickerData();
-      container.querySelector('.clicker-stats');
-.innerHTML = `
+      container.querySelector('.clicker-stats').innerHTML = `
         BlackCoin: ${blackCoins}<br>
-        Енергия: ${energy}/100<br>
+        Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
       container.querySelector('.clicker-progress-bar').style.width = `${(dailyCoins / 200) * 100}%`;
@@ -1012,7 +1010,7 @@
     convertBtn.className = "add-btn";
     convertBtn.textContent = "Конвертировать 100 BlackCoin в 2₽";
     convertBtn.style.marginTop = "16px";
-    convertBtn.disabled = convertCoins;
+    convertBtn.onclick = convertCoins;
     convertBtn.disabled = blackCoins < 100;
     const buyEnergyBtn = document.createElement("button");
     buyEnergyBtn.className = "add-btn";
@@ -1030,7 +1028,7 @@
         Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
-    }, 60000); // Обновление энергии каждый минуту
+    }, 60000); // Обновление энергии каждую минуту
   }
 
   function convertCoins() {
@@ -1052,7 +1050,7 @@
 
   function buyEnergy() {
     if (balance < 10) {
-      tg?.showAlert("Недостаточно средств! Пополните баланс!");
+      tg?.showAlert("Недостаточно средств! Пополните баланс.");
       return;
     }
     balance -= 10;
@@ -1086,7 +1084,7 @@
         { id: "100", type: "default", text: "100₽" },
         { id: "500", type: "default", text: "500₽" },
         { id: "1000", type: "default", text: "1000₽" },
-        { type: "cancel", text: "Cancel" }
+        { type: "cancel", text: "Отмена" }
       ]
     }, (buttonId) => {
       if (buttonId && buttonId !== "cancel") {
@@ -1121,7 +1119,6 @@
         }
       }
       if (prod) orderItems.push({ ...prod, qty: cart[pid] });
-      }
     }
 
     orders.push({ items: orderItems, date: new Date().toISOString() });
@@ -1133,7 +1130,6 @@
         balance: balance
       }));
       tg.showAlert("✅ Заказ оформлен! Спасибо :)");
-      }
     }
 
     cart = {};
@@ -1145,7 +1141,7 @@
   profileBtn.onclick = showProfile;
 
   if (tg && tg.themeParams) {
-    const themeParams = tg.themeParams();
+    const themeParams = tg.themeParams;
     if (themeParams.button_color) {
       document.documentElement.style.setProperty('--btn-bg', themeParams.button_color);
     }
