@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>BlackArchive Store</title>
+  <title>DANKEPAY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -288,7 +288,7 @@
     ul.products > li {
       background: var(--card-bg);
       margin-bottom: 12px;
-      padding: 16px;
+      padding: 24px 16px; /* Увеличенный padding для более крупных кнопок */
       border-radius: 12px;
       box-shadow: 0 2px 8px var(--card-shadow);
       cursor: pointer;
@@ -296,6 +296,11 @@
       position: relative;
       overflow: hidden;
       width: 100%;
+      min-height: 60px; /* Минимальная высота для подкатегорий */
+      font-size: 1.2em; /* Увеличенный шрифт для текста */
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Центрирование текста */
     }
 
     ul.subcategories > li:hover,
@@ -399,12 +404,13 @@
 
     .profile-container {
       background: var(--card-bg);
-      padding: 16px;
+      padding: 24px; /* Увеличенный padding для просторности */
       border-radius: 12px;
       box-shadow: 0 2px 8px var(--card-shadow);
       text-align: center;
       width: 100%;
       margin: 0 auto;
+      min-height: 300px; /* Минимальная высота для профиля */
     }
 
     .profile-avatar {
