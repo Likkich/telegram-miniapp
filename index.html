@@ -2,37 +2,40 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>DANKEPAY</title>
+  <title>DANKEPAY Store</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #121212;
-      --text-color: #e0e0e0;
-      --primary-color: #1a73e8;
+      --bg-color: #d45100; /* Фон */
+      --text-color: #f5f5f5; /* Светлый текст для читаемости */
+      --primary-color: #b34100; /* Цвет кнопок */
       --btn-bg: var(--primary-color);
       --btn-text: #ffffff;
-      --card-bg: #1e1e1e;
-      --card-shadow: rgba(0, 0, 0, 0.3);
-      --hover-bg: #2a2a2a;
-      --disabled-bg: #333333;
-      --disabled-text: #777777;
-      --welcome-bg: #1e1e1e;
+      --btn-hover: #e56300; /* Hover для кнопок */
+      --card-bg: #ff8c38; /* Тёплый светло-оранжевый для карточек */
+      --card-hover: #ff7b24; /* Hover для карточек */
+      --header-bg: #b34100; /* Тёмный оранжевый для хедера и футера */
+      --card-shadow: rgba(0, 0, 0, 0.2);
+      --disabled-bg: #a03c00; /* Оттенок для отключённых элементов */
+      --disabled-text: #cccccc;
+      --welcome-bg: #ff8c38; /* Тёплый оранжевый для приветствия */
       --safe-area-inset-top: env(safe-area-inset-top, 0px);
       --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-      --max-width: 430px; /* Максимальная ширина для мобильного вида */
+      --max-width: 430px;
     }
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg-color: #121212;
-        --text-color: #e0e0e0;
-        --card-bg: #1e1e1e;
-        --hover-bg: #2a2a2a;
-        --card-shadow: rgba(0, 0, 0, 0.3);
-        --disabled-bg: #333333;
-        --disabled-text: #777777;
-        --welcome-bg: #1e1e1e;
+        --bg-color: #d45100;
+        --text-color: #f5f5f5;
+        --card-bg: #ff8c38;
+        --card-hover: #ff7b24;
+        --header-bg: #b34100;
+        --card-shadow: rgba(0, 0, 0, 0.2);
+        --disabled-bg: #a03c00;
+        --disabled-text: #cccccc;
+        --welcome-bg: #ff8c38;
       }
     }
 
@@ -120,8 +123,8 @@
       font-weight: 600;
       padding: 16px;
       padding-top: calc(20px + var(--safe-area-inset-top));
-      color: var(--primary-color);
-      background: var(--card-bg);
+      color: var(--text-color);
+      background: var(--header-bg);
       box-shadow: 0 2px 8px var(--card-shadow);
       z-index: 100;
     }
@@ -151,7 +154,7 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: var(--max-width);
-      background: var(--card-bg);
+      background: var(--header-bg);
       box-shadow: 0 -2px 8px var(--card-shadow);
       display: flex;
       justify-content: space-between;
@@ -260,7 +263,7 @@
     }
 
     .category-card:hover {
-      background-color: var(--hover-bg);
+      background-color: var(--card-hover);
       transform: translateY(-2px);
     }
 
@@ -288,7 +291,7 @@
     ul.products > li {
       background: var(--card-bg);
       margin-bottom: 12px;
-      padding: 24px 16px; /* Увеличенный padding для более крупных кнопок */
+      padding: 24px 16px;
       border-radius: 12px;
       box-shadow: 0 2px 8px var(--card-shadow);
       cursor: pointer;
@@ -296,16 +299,16 @@
       position: relative;
       overflow: hidden;
       width: 100%;
-      min-height: 60px; /* Минимальная высота для подкатегорий */
-      font-size: 1.2em; /* Увеличенный шрифт для текста */
+      min-height: 60px;
+      font-size: 1.2em;
       display: flex;
       align-items: center;
-      justify-content: center; /* Центрирование текста */
+      justify-content: center;
     }
 
     ul.subcategories > li:hover,
     ul.products > li:hover {
-      background-color: var(--hover-bg);
+      background-color: var(--card-hover);
       transform: translateY(-2px);
     }
 
@@ -351,7 +354,7 @@
     }
 
     button.add-btn:hover, button.back-btn:hover, button.help-btn:hover {
-      background-color: #1557b0;
+      background-color: var(--btn-hover);
       transform: translateY(-1px);
     }
 
@@ -404,13 +407,13 @@
 
     .profile-container {
       background: var(--card-bg);
-      padding: 24px; /* Увеличенный padding для просторности */
+      padding: 24px;
       border-radius: 12px;
       box-shadow: 0 2px 8px var(--card-shadow);
       text-align: center;
       width: 100%;
       margin: 0 auto;
-      min-height: 300px; /* Минимальная высота для профиля */
+      min-height: 300px;
     }
 
     .profile-avatar {
@@ -443,7 +446,7 @@
     }
 
     .order-item {
-      background: var(--hover-bg);
+      background: var(--card-hover);
       padding: 12px;
       border-radius: 8px;
       margin-bottom: 8px;
@@ -599,7 +602,7 @@
     <div id="splash-text" class="splash-text"></div>
   </div>
   <header id="header">
-    <span id="header-title" class="header-title">DANKEPAY</span>
+    <span id="header-title" class="header-title">DANKEPAY Store</span>
   </header>
   <main id="content"></main>
   <footer>
@@ -837,7 +840,7 @@
     const user = tg?.initDataUnsafe?.user;
     splashText.textContent = user?.first_name
       ? `Добро пожаловать, ${user.first_name}!`
-      : "Добро пожаловать в DANKEPAY!";
+      : "Добро пожаловать в DANKEPAY Store!";
     splashAvatar.src = user?.photo_url || "https://via.placeholder.com/80";
     footerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/44";
     
@@ -861,7 +864,7 @@
   function showCategories() {
     console.log("Showing categories");
     state = { ...state, level: "categories", categoryId: null, subcategoryId: null };
-    headerTitleEl.textContent = "DANKEPAY";
+    headerTitleEl.textContent = "DANKEPAY Store";
     cartCountEl.classList.toggle("hidden", Object.keys(cart).length === 0);
     profileBtn.style.display = "flex";
     tg.BackButton.hide();
@@ -875,7 +878,7 @@
 
     const welcome = document.createElement("div");
     welcome.className = "welcome-message";
-    welcome.textContent = "Добро пожаловать в DANKEPAY! Выберите интересующую категорию ниже.";
+    welcome.textContent = "Добро пожаловать в DANKEPAY Store! Выберите интересующую категорию ниже.";
     contentEl.appendChild(welcome);
 
     const container = document.createElement("div");
@@ -962,7 +965,7 @@
     tg.BackButton.show();
 
     contentEl.innerHTML = "";
-    const backBtn = createButton("Назад", () => {
+    const backBtn = createButton("того", () => {
       console.log("Back button clicked from products");
       showSubcategories(state.categoryId);
     }, { className: "back-btn" });
