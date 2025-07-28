@@ -401,6 +401,49 @@
       margin-bottom: 8px;
     }
 
+    .clicker-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--card-shadow);
+      margin-top: 16px;
+    }
+
+    .clicker-coin {
+      width: 150px;
+      height: 150px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .clicker-coin:active {
+      transform: scale(0.9);
+    }
+
+    .clicker-stats {
+      margin: 16px 0;
+      font-size: 1.1em;
+    }
+
+    .clicker-progress {
+      width: 100%;
+      height: 10px;
+      background: var(--disabled-bg);
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .clicker-progress-bar {
+      height: 100%;
+      background: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+
     main::-webkit-scrollbar {
       width: 6px;
     }
@@ -448,7 +491,7 @@
         showCategories();
       } else if (state.level === "products") {
         showSubcategories(state.categoryId);
-      } else if (state.level === "cart" || state.level === "profile") {
+      } else if (state.level === "cart" || state.level === "profile" || state.level === "clicker") {
         if (state.subcategoryId) {
           showProducts(state.subcategoryId);
         } else if (state.categoryId) {
@@ -539,6 +582,11 @@
   let cart = {};
   let balance = 0;
   let orders = [];
+  let blackCoins = parseInt(localStorage.getItem('blackCoins') || '0');
+  let energy = parseInt(localStorage.getItem('energy') || '100');
+  let dailyCoins = parseInt(localStorage.getItem('dailyCoins') || '0');
+  let lastClickTime = parseInt(localStorage.getItem('lastClickTime') || '0');
+  let lastResetDate = localStorage.getItem('lastResetDate') || new Date().toISOString().split('T')[0];
   let state = { level: "categories", categoryId: null, subcategoryId: null, splashShown: false };
   const headerEl = document.getElementById("header");
   const headerTitleEl = document.getElementById("header-title");
@@ -571,6 +619,35 @@
       btn.classList.add("disabled");
     }
     return btn;
+  }
+
+  function saveClickerData() {
+    localStorage.setItem('blackCoins', blackCoins);
+    localStorage.setItem('energy', energy);
+    localStorage.setItem('dailyCoins', dailyCoins);
+    localStorage.setItem('lastClickTime', lastClickTime);
+    localStorage.setItem('lastResetDate', lastResetDate);
+  }
+
+  function checkDailyReset() {
+    const today = new Date().toISOString().split('T')[0];
+    if (today !== lastResetDate) {
+      dailyCoins = 0;
+      lastResetDate = today;
+      saveClickerData();
+    }
+  }
+
+  function updateEnergy() {
+    const now = Date.now();
+    const timeDiff = (now - lastClickTime) / 1000; // в секундах
+    const energyToAdd = Math.floor(timeDiff / 300); // 1 энергия каждые 5 минут
+    if (energyToAdd > 0) {
+      energy = Math.min(100, energy + energyToAdd);
+      lastClickTime = now;
+      saveClickerData();
+    }
+    return energy;
   }
 
   function showSplashScreen() {
@@ -636,6 +713,16 @@
       container.appendChild(card);
     });
     contentEl.appendChild(container);
+
+    const clickerBtn = document.createElement("div");
+    clickerBtn.className = "category-card";
+    clickerBtn.style.marginTop = "16px";
+    clickerBtn.innerHTML = `
+      <div class="category-icon">💸</div>
+      <div class="category-name">BlackCoin</div>
+    `;
+    clickerBtn.onclick = showClicker;
+    contentEl.appendChild(clickerBtn);
   }
 
   function showSubcategories(categoryId) {
@@ -805,6 +892,7 @@
       <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Аватар пользователя" />
       <div class="profile-name">${user?.first_name || 'Пользователь'}</div>
       <div class="profile-balance">Баланс: ${balance.toLocaleString()}₽</div>
+      <div class="profile-balance">BlackCoin: ${blackCoins}</div>
     `;
     const topUpBtn = createButton("Пополнить баланс", topUpBalance, { marginTop: "16px" });
     container.appendChild(topUpBtn);
@@ -832,6 +920,112 @@
     }
     container.appendChild(ordersDiv);
     contentEl.appendChild(container);
+  }
+
+  function showClicker() {
+    state = { ...state, level: "clicker", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
+    headerTitleEl.textContent = "BlackCoin Кликер";
+    cartCountEl.classList.toggle("hidden", Object.keys(cart).length === 0);
+    profileBtn.style.display = "flex";
+    tg.BackButton.show();
+
+    checkDailyReset();
+    updateEnergy();
+
+    contentEl.innerHTML = "";
+    const backBtn = createButton("Назад", showCategories, { className: "back-btn" });
+    contentEl.appendChild(backBtn);
+
+    const container = document.createElement("div");
+    container.className = "clicker-container";
+    container.innerHTML = `
+      <img src="https://via.placeholder.com/150?text=BlackCoin" class="clicker-coin" alt="BlackCoin" />
+      <div class="clicker-stats">
+        BlackCoin: ${blackCoins}<br>
+        Энергия: ${energy}/100<br>
+        Сегодня нафармлено: ${dailyCoins}/200
+      </div>
+      <div class="clicker-progress">
+        <div class="clicker-progress-bar" style="width: ${(dailyCoins / 200) * 100}%"></div>
+      </div>
+    `;
+    
+    const coin = container.querySelector('.clicker-coin');
+    let lastClick = 0;
+    coin.onclick = () => {
+      const now = Date.now();
+      if (now - lastClick < 200) { // Не больше 5 кликов в секунду
+        tg?.showAlert("Слишком быстро! Кликай медленнее.");
+        return;
+      }
+      if (energy < 1) {
+        tg?.showAlert("Энергия закончилась! Дождитесь восстановления или купите энергию.");
+        return;
+      }
+      if (dailyCoins >= 200) {
+        tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра.");
+        return;
+      }
+      lastClick = now;
+      blackCoins++;
+      dailyCoins++;
+      energy--;
+      lastClickTime = now;
+      saveClickerData();
+      container.querySelector('.clicker-stats').innerHTML = `
+        BlackCoin: ${blackCoins}<br>
+        Энергия: ${energy}/100<br>
+        Сегодня нафармлено: ${dailyCoins}/200
+      `;
+      container.querySelector('.clicker-progress-bar').style.width = `${(dailyCoins / 200) * 100}%`;
+    };
+
+    const convertBtn = createButton("Конвертировать 100 BlackCoin в 2₽", convertCoins, {
+      marginTop: "16px",
+      disabled: blackCoins < 100
+    });
+    const buyEnergyBtn = createButton("Купить 50 энергии за 10₽", buyEnergy, { marginTop: "8px" });
+    container.appendChild(convertBtn);
+    container.appendChild(buyEnergyBtn);
+    contentEl.appendChild(container);
+
+    setInterval(() => {
+      updateEnergy();
+      container.querySelector('.clicker-stats').innerHTML = `
+        BlackCoin: ${blackCoins}<br>
+        Энергия: ${energy}/100<br>
+        Сегодня нафармлено: ${dailyCoins}/200
+      `;
+    }, 60000); // Обновление энергии каждую минуту
+  }
+
+  function convertCoins() {
+    if (blackCoins < 100) {
+      tg?.showAlert("Нужно минимум 100 BlackCoin для конвертации!");
+      return;
+    }
+    blackCoins -= 100;
+    balance += 2;
+    saveClickerData();
+    tg?.sendData(JSON.stringify({
+      action: "convert_coins",
+      coins: 100,
+      rubles: 2
+    }));
+    tg?.showAlert("✅ 100 BlackCoin конвертировано в 2₽!");
+    showClicker();
+  }
+
+  function buyEnergy() {
+    if (balance < 10) {
+      tg?.showAlert("Недостаточно средств! Пополните баланс.");
+      return;
+    }
+    balance -= 10;
+    energy = Math.min(100, energy + 50);
+    saveClickerData();
+    tg?.showAlert("✅ Куплено 50 энергии!");
+    showClicker();
   }
 
   function addToCart(productId, productName, productPrice) {
