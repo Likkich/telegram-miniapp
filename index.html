@@ -136,9 +136,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 16px;
+      padding: 12px 20px;
       box-sizing: border-box;
-      height: 64px;
+      height: 80px;
     }
 
     .footer-btn {
@@ -149,9 +149,12 @@
       background: none;
       border: none;
       color: var(--text-color);
-      font-size: 0.85em;
+      font-size: 0.9em;
       font-weight: 500;
       transition: transform 0.2s ease;
+      position: relative;
+      padding: 8px;
+      min-width: 64px;
     }
 
     .footer-btn:hover {
@@ -159,16 +162,16 @@
     }
 
     .footer-btn img {
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .footer-btn svg {
-      width: 32px;
-      height: 32px;
-      margin-bottom: 4px;
+      width: 44px;
+      height: 44px;
+      margin-bottom: 6px;
       fill: var(--text-color);
     }
 
@@ -180,8 +183,13 @@
       font-weight: 600;
       font-size: 0.75em;
       position: absolute;
-      top: -5px;
-      right: -5px;
+      top: 0;
+      right: 0;
+    }
+
+    .cart-icon-container {
+      position: relative;
+      display: inline-block;
     }
 
     .banner {
@@ -302,8 +310,10 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.95em;
+      font-size: 1.1em;
       font-weight: 500;
+      padding: 12px 24px;
+      min-height: 48px;
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
 
@@ -338,8 +348,6 @@
 
     button.back-btn {
       margin: 24px 0 16px 0;
-      padding: 10px 20px;
-      font-size: 1em;
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -414,11 +422,13 @@
   <main id="content"></main>
   <footer>
     <button id="cart-btn" class="footer-btn">
-      <svg viewBox="0 0 24 24">
-        <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM2 2v4h2l3.6 7.59L6.15 17H18.85l-1.45-2.41L9.21 6H5.87L4.58 4H2zm17 9H8.5l3.15 5.25h7.35L19 11z"/>
-      </svg>
+      <span class="cart-icon-container">
+        <svg viewBox="0 0 24 24">
+          <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM2 2v4h2l3.6 7.59L6.15 17H18.85l-1.45-2.41L9.21 6H5.87L4.58 4H2zm17 9H8.5l3.15 5.25h7.35L19 11z"/>
+        </svg>
+        <span id="cart-count" class="badge hidden">0</span>
+      </span>
       <span>Корзина</span>
-      <span id="cart-count" class="badge hidden">0</span>
     </button>
     <button id="profile-btn" class="footer-btn">
       <img id="footer-avatar" class="footer-avatar" alt="Аватар пользователя" />
@@ -527,8 +537,8 @@
   };
 
   let cart = {};
-  let balance = 0; // Баланс пользователя
-  let orders = []; // История заказов
+  let balance = 0;
+  let orders = [];
   let state = { level: "categories", categoryId: null, subcategoryId: null, splashShown: false };
   const headerEl = document.getElementById("header");
   const headerTitleEl = document.getElementById("header-title");
@@ -575,7 +585,7 @@
       ? `Добро пожаловать, ${user.first_name}!`
       : "Добро пожаловать в BlackArchive Store!";
     splashAvatar.src = user?.photo_url || "https://via.placeholder.com/80";
-    footerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/32";
+    footerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/44";
     
     headerEl.classList.add("hidden");
     contentEl.classList.add("hidden");
@@ -597,7 +607,6 @@
   function showCategories() {
     state = { ...state, level: "categories", categoryId: null, subcategoryId: null };
     headerTitleEl.textContent = "BlackArchive Store";
-    cartBtn.querySelector("span:not(.badge)").textContent = "Корзина";
     cartCountEl.classList.toggle("hidden", Object.keys(cart).length === 0);
     profileBtn.style.display = "flex";
     tg.BackButton.hide();
@@ -746,7 +755,7 @@
         cart[prod.id]++;
         updateCartCount();
         showCart();
-      }, { style: { marginRight: "8px" } });
+      }, { style: { marginRight: "8px", minWidth: "48px" } });
       const minusBtn = createButton("−", () => {
         if (cart[prod.id] > 1) {
           cart[prod.id]--;
@@ -755,7 +764,7 @@
         }
         updateCartCount();
         showCart();
-      }, { style: { backgroundColor: "#d93025" } });
+      }, { style: { backgroundColor: "#d93025", minWidth: "48px" } });
       const controlsDiv = document.createElement("div");
       controlsDiv.style.marginTop = "12px";
       controlsDiv.appendChild(plusBtn);
