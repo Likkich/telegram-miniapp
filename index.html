@@ -532,6 +532,26 @@
       margin-bottom: 12px;
     }
 
+    .desktop-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px var(--card-shadow);
+      max-width: 90%;
+      margin: 16px;
+    }
+
+    .desktop-message p {
+      font-size: 1.1em;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
     main::-webkit-scrollbar {
       width: 6px;
     }
@@ -702,6 +722,11 @@
   const splashText = document.getElementById("splash-text");
   const helpModal = document.getElementById("help-modal");
   const modalClose = document.getElementById("modal-close");
+
+  function isMobileDevice() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return /mobile|android|iphone|ipad|ipod|blackberry|windows phone/.test(userAgent);
+  }
 
   function createButton(text, onClick, options = {}) {
     const btn = document.createElement("button");
@@ -1048,18 +1073,32 @@
     profileBtn.style.display = "flex";
     tg.BackButton.show();
 
+    contentEl.innerHTML = "";
+
+    if (!isMobileDevice()) {
+      const backBtn = createButton("Назад", showCategories, { className: "back-btn" });
+      contentEl.appendChild(backBtn);
+      const message = document.createElement("div");
+      message.className = "desktop-message";
+      message.innerHTML = `
+        <p>Ой, извини, но в BlackCoin можно играть только с телефона, так удобней. Но не отчаивайся, ты всё ещё можешь пользоваться нашим магазином!</p>
+      `;
+      const backBtn2 = createButton("Назад", showCategories, { className: "back-btn" });
+      message.appendChild(backBtn2);
+      contentEl.appendChild(message);
+      return;
+    }
+
     checkDailyReset();
     updateEnergy();
 
-    contentEl.innerHTML = "";
     const backBtn = createButton("Назад", showCategories, { className: "back-btn" });
     contentEl.appendChild(backBtn);
 
     const container = document.createElement("div");
     container.className = "clicker-container";
-    // Иконка BlackCoin: должна быть 512x512px PNG с прозрачным фоном, добавить в assets/blackcoin.png
     container.innerHTML = `
-      <img src="assets/BlackCoin.png" class="clicker-coin" alt="BlackCoin" />
+      <img src="assets/blackcoin.png" class="clicker-coin" alt="BlackCoin" />
       <div class="clicker-stats">
         BlackCoin: ${blackCoins}<br>
         Энергия: ${energy}/100<br>
@@ -1083,7 +1122,6 @@
         tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра.");
         return;
       }
-      // Защита от автокликеров: пока ограничена энергией и дневным лимитом, серверная валидация нужна для полной защиты
       blackCoins++;
       dailyCoins++;
       energy--;
@@ -1127,7 +1165,7 @@
         Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
-    }, 60000); // Обновление энергии каждую минуту
+    }, 60000);
   }
 
   function convertCoins() {
@@ -1225,7 +1263,7 @@
       tg.sendData(JSON.stringify({
         action: "submit_order",
         items: orderItems,
-        total: topUpBalance,
+        total: total,
         balance: balance
       }));
       tg.showAlert("✅ Заказ оформлен! Спасибо :)");
