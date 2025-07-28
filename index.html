@@ -599,7 +599,7 @@
     <div id="splash-text" class="splash-text"></div>
   </div>
   <header id="header">
-    <span id="header-title" class="header-title">BlackArchive Store</span>
+    <span id="header-title" class="header-title">DANKEPAY</span>
   </header>
   <main id="content"></main>
   <footer>
@@ -837,7 +837,7 @@
     const user = tg?.initDataUnsafe?.user;
     splashText.textContent = user?.first_name
       ? `Добро пожаловать, ${user.first_name}!`
-      : "Добро пожаловать в BlackArchive Store!";
+      : "Добро пожаловать в DANKEPAY!";
     splashAvatar.src = user?.photo_url || "https://via.placeholder.com/80";
     footerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/44";
     
@@ -861,7 +861,7 @@
   function showCategories() {
     console.log("Showing categories");
     state = { ...state, level: "categories", categoryId: null, subcategoryId: null };
-    headerTitleEl.textContent = "BlackArchive Store";
+    headerTitleEl.textContent = "DANKEPAY";
     cartCountEl.classList.toggle("hidden", Object.keys(cart).length === 0);
     profileBtn.style.display = "flex";
     tg.BackButton.hide();
@@ -875,7 +875,7 @@
 
     const welcome = document.createElement("div");
     welcome.className = "welcome-message";
-    welcome.textContent = "Добро пожаловать в BlackArchive Store! Выберите интересующую категорию ниже.";
+    welcome.textContent = "Добро пожаловать в DANKEPAY! Выберите интересующую категорию ниже.";
     contentEl.appendChild(welcome);
 
     const container = document.createElement("div");
