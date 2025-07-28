@@ -37,6 +37,7 @@
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -51,7 +52,6 @@
       display: flex;
       flex-direction: column;
       padding: 0;
-      overflow: hidden;
     }
 
     .splash-screen {
@@ -104,6 +104,10 @@
     }
 
     header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -114,7 +118,7 @@
       color: var(--primary-color);
       background: var(--card-bg);
       box-shadow: 0 2px 8px var(--card-shadow);
-      z-index: 10;
+      z-index: 100;
     }
 
     .header-title {
@@ -125,9 +129,12 @@
     main {
       flex: 1;
       overflow-y: auto;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
       padding: 16px;
+      padding-top: calc(60px + var(--safe-area-inset-top));
       padding-bottom: calc(80px + var(--safe-area-inset-bottom));
-      min-height: calc(100vh - 120px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
+      height: calc(100vh - 60px - 80px - var(--safe-area-inset-top) - var(--safe-area-inset-bottom));
     }
 
     footer {
@@ -142,7 +149,7 @@
       align-items: center;
       padding: 12px 20px;
       height: 80px;
-      z-index: 10;
+      z-index: 100;
     }
 
     .footer-btn {
@@ -418,14 +425,25 @@
     }
 
     .clicker-coin {
-      width: 150px;
-      height: 150px;
+      width: min(300px, 75vw);
+      height: min(300px, 75vh);
+      margin: 20px auto;
       cursor: pointer;
       transition: transform 0.2s ease;
     }
 
     .clicker-coin:active {
-      transform: scale(0.9);
+      transform: scale(0.85);
+    }
+
+    .clicker-coin-tapped {
+      animation: tapAnimation 0.2s ease;
+    }
+
+    @keyframes tapAnimation {
+      0% { transform: scale(1); box-shadow: none; }
+      50% { transform: scale(0.85); box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+      100% { transform: scale(1); box-shadow: none; }
     }
 
     .clicker-stats {
@@ -893,7 +911,7 @@
     const container = document.createElement("div");
     container.className = "profile-container";
     container.innerHTML = `
-      <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Аватар пользователя" />
+      <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Profile Avatar" />
       <div class="profile-name">${user?.first_name || 'Пользователь'}</div>
       <div class="profile-balance">Баланс: ${balance.toLocaleString()}₽</div>
       <div class="profile-balance">BlackCoin: ${blackCoins}</div>
@@ -942,9 +960,9 @@
 
     const container = document.createElement("div");
     container.className = "clicker-container";
-    // Иконка BlackCoin: должна быть 512x512px PNG с прозрачным фоном, добавить в assets/blackcoin.png
+    // Иконка BlackCoin: должна быть 512x256px PNG с прозрачным фоном, добавить в assets/blackcoin.png
     container.innerHTML = `
-      <img src="assets/BlackCoin.png" class="clicker-coin" alt="BlackCoin" />
+      <img src="https://i.imgur.com/BRQ3Q.png" class="clicker-coin" alt="BlackCoin" />
       <div class="clicker-stats">
         BlackCoin: ${blackCoins}<br>
         Энергия: ${energy}/100<br>
@@ -961,29 +979,46 @@
         tg?.showAlert("Энергия закончилась! Дождитесь восстановления или купите энергию.");
         return;
       }
-      if (dailyCoins >= 200) {
-        tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра.");
+      if (dailyCoins >= 0) {
+        tg?.showAlert("Дневной лимит достигнут! Возвращайтесь завтра!");
         return;
       }
+
       // Защита от автокликеров: пока ограничена энергией и дневным лимитом, серверная валидация нужна для полной защиты
       blackCoins++;
       dailyCoins++;
       energy--;
       lastClickTime = Date.now();
       saveClickerData();
-      container.querySelector('.clicker-stats').innerHTML = `
+      container.querySelector('.clicker-stats');
+.innerHTML = `
         BlackCoin: ${blackCoins}<br>
-        Энергия: ${energy}/100<br>
+        Енергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
       container.querySelector('.clicker-progress-bar').style.width = `${(dailyCoins / 200) * 100}%`;
     };
 
-    const convertBtn = createButton("Конвертировать 100 BlackCoin в 2₽", convertCoins, {
-      marginTop: "16px",
-      disabled: blackCoins < 100
+    // Добавляем touch-события для анимации на мобильных устройствах
+    coin.addEventListener('touchstart', () => {
+      coin.classList.add('clicker-coin-tapped');
     });
-    const buyEnergyBtn = createButton("Купить 50 энергии за 10₽", buyEnergy, { marginTop: "8px" });
+
+    coin.addEventListener('touchend', () => {
+      coin.classList.remove('clicker-coin-tapped');
+    });
+
+    const convertBtn = document.createElement("button");
+    convertBtn.className = "add-btn";
+    convertBtn.textContent = "Конвертировать 100 BlackCoin в 2₽";
+    convertBtn.style.marginTop = "16px";
+    convertBtn.disabled = convertCoins;
+    convertBtn.disabled = blackCoins < 100;
+    const buyEnergyBtn = document.createElement("button");
+    buyEnergyBtn.className = "add-btn";
+    buyEnergyBtn.textContent = "Купить 50 энергии за 10₽";
+    buyEnergyBtn.style.marginTop = "8px";
+    buyEnergyBtn.onclick = buyEnergy;
     container.appendChild(convertBtn);
     container.appendChild(buyEnergyBtn);
     contentEl.appendChild(container);
@@ -995,7 +1030,7 @@
         Энергия: ${energy}/100<br>
         Сегодня нафармлено: ${dailyCoins}/200
       `;
-    }, 60000); // Обновление энергии каждую минуту
+    }, 60000); // Обновление энергии каждый минуту
   }
 
   function convertCoins() {
@@ -1017,7 +1052,7 @@
 
   function buyEnergy() {
     if (balance < 10) {
-      tg?.showAlert("Недостаточно средств! Пополните баланс.");
+      tg?.showAlert("Недостаточно средств! Пополните баланс!");
       return;
     }
     balance -= 10;
@@ -1051,7 +1086,7 @@
         { id: "100", type: "default", text: "100₽" },
         { id: "500", type: "default", text: "500₽" },
         { id: "1000", type: "default", text: "1000₽" },
-        { type: "cancel", text: "Отмена" }
+        { type: "cancel", text: "Cancel" }
       ]
     }, (buttonId) => {
       if (buttonId && buttonId !== "cancel") {
@@ -1086,6 +1121,7 @@
         }
       }
       if (prod) orderItems.push({ ...prod, qty: cart[pid] });
+      }
     }
 
     orders.push({ items: orderItems, date: new Date().toISOString() });
@@ -1097,6 +1133,7 @@
         balance: balance
       }));
       tg.showAlert("✅ Заказ оформлен! Спасибо :)");
+      }
     }
 
     cart = {};
@@ -1108,7 +1145,7 @@
   profileBtn.onclick = showProfile;
 
   if (tg && tg.themeParams) {
-    const themeParams = tg.themeParams;
+    const themeParams = tg.themeParams();
     if (themeParams.button_color) {
       document.documentElement.style.setProperty('--btn-bg', themeParams.button_color);
     }
