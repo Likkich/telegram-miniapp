@@ -7,19 +7,19 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #ffa269; /* Фон */
-      --text-color: #f5f5f5; /* Светлый текст для читаемости */
-      --primary-color: #a600a0; /* Цвет кнопок */
+      --bg-color: #191a23; /* Новый тёмный фон */
+      --text-color: #e0e0e0; /* Светлый текст для читаемости */
+      --primary-color: #1a8b8b; /* Тёмно-бирюзовый для кнопок */
       --btn-bg: var(--primary-color);
       --btn-text: #ffffff;
-      --btn-hover: #e56300; /* Hover для кнопок */
-      --card-bg: #ff8c38; /* Тёплый светло-оранжевый для карточек */
-      --card-hover: #ff7b24; /* Hover для карточек */
-      --header-bg: #b34100; /* Тёмный оранжевый для хедера и футера */
-      --card-shadow: rgba(0, 0, 0, 0.2);
-      --disabled-bg: #a03c00; /* Оттенок для отключённых элементов */
-      --disabled-text: #cccccc;
-      --welcome-bg: #ff8c38; /* Тёплый оранжевый для приветствия */
+      --btn-hover: #23b3b3; /* Hover для кнопок */
+      --card-bg: #2a2b33; /* Светлый тёплый серый для карточек */
+      --card-hover: #35363f; /* Hover для карточек */
+      --header-bg: #21222b; /* Тёмный серый для хедера и футера */
+      --card-shadow: rgba(0, 0, 0, 0.3);
+      --disabled-bg: #1c1d25; /* Тёмный серый для отключённых элементов */
+      --disabled-text: #999999;
+      --welcome-bg: #2a2b33; /* Тот же цвет для приветствия */
       --safe-area-inset-top: env(safe-area-inset-top, 0px);
       --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
       --max-width: 430px;
@@ -27,15 +27,15 @@
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg-color: #ffa269;
-        --text-color: #f5f5f5;
-        --card-bg: #ff8c38;
-        --card-hover: #ff7b24;
-        --header-bg: #b34100;
-        --card-shadow: rgba(0, 0, 0, 0.2);
-        --disabled-bg: #a03c00;
-        --disabled-text: #cccccc;
-        --welcome-bg: #ff8c38;
+        --bg-color: #191a23;
+        --text-color: #e0e0e0;
+        --card-bg: #2a2b33;
+        --card-hover: #35363f;
+        --header-bg: #21222b;
+        --card-shadow: rgba(0, 0, 0, 0.3);
+        --disabled-bg: #1c1d25;
+        --disabled-text: #999999;
+        --welcome-bg: #2a2b33;
       }
     }
 
@@ -787,7 +787,7 @@
   }
 
   function saveClickerData() {
-    localStorage.setItem('dankecoins', dankecoin);
+    localStorage.setItem('dankecoins', dankecoins);
     localStorage.setItem('energy', energy);
     localStorage.setItem('dailyCoins', dailyCoins);
     localStorage.setItem('lastClickTime', lastClickTime);
@@ -965,7 +965,7 @@
     tg.BackButton.show();
 
     contentEl.innerHTML = "";
-    const backBtn = createButton("того", () => {
+    const backBtn = createButton("Назад", () => {
       console.log("Back button clicked from products");
       showSubcategories(state.categoryId);
     }, { className: "back-btn" });
@@ -1170,7 +1170,7 @@
     const container = document.createElement("div");
     container.className = "clicker-container";
     container.innerHTML = `
-      <img src="assets/blackcoin.png" class="clicker-coin" alt="BlackCoin" />
+      <img src="assets/dankecoin.png" class="clicker-coin" alt="Danke Coin" />
       <div class="clicker-stats">
         Danke Coin: ${dankecoins}<br>
         Энергия: ${energy}/100<br>
@@ -1216,23 +1216,15 @@
       coin.classList.remove('clicker-coin-tapped');
     });
 
-    const convertBtn = document.createElement("button");
-    convertBtn.className = "add-btn";
-    convertBtn.textContent = "Конвертировать 100 Danke Coin в 2₽";
-    convertBtn.style.marginTop = "16px";
-    convertBtn.onclick = () => {
+    const convertBtn = createButton("Конвертировать 100 Danke Coin в 2₽", () => {
       console.log("Convert button clicked");
       convertCoins();
-    };
+    }, { marginTop: "16px" });
     convertBtn.disabled = dankecoins < 100;
-    const buyEnergyBtn = document.createElement("button");
-    buyEnergyBtn.className = "add-btn";
-    buyEnergyBtn.textContent = "Купить 50 энергии за 10₽";
-    buyEnergyBtn.style.marginTop = "8px";
-    buyEnergyBtn.onclick = () => {
+    const buyEnergyBtn = createButton("Купить 50 энергии за 10₽", () => {
       console.log("Buy energy button clicked");
       buyEnergy();
-    };
+    }, { marginTop: "8px" });
     container.appendChild(convertBtn);
     container.appendChild(buyEnergyBtn);
     contentEl.appendChild(container);
