@@ -245,7 +245,7 @@
       font-size: 0.95em;
     }
 
-    button.add-btn, button.cart-btn, button.back-btn {
+    button.add-btn, button.cart-btn, button.back-btn, button.profile-btn {
       position: relative;
       overflow: hidden;
       background: var(--btn-bg);
@@ -258,16 +258,16 @@
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
 
-    button.add-btn:hover, button.cart-btn:hover, button.back-btn:hover {
+    button.add-btn:hover, button.cart-btn:hover, button.back-btn:hover, button.profile-btn:hover {
       background-color: #1557b0;
       transform: translateY(-1px);
     }
 
-    button.add-btn:active, button.cart-btn:active, button.back-btn:active {
+    button.add-btn:active, button.cart-btn:active, button.back-btn:active, button.profile-btn:active {
       transform: scale(0.95);
     }
 
-    button.add-btn::after, button.cart-btn::after, button.back-btn::after {
+    button.add-btn::after, button.cart-btn::after, button.back-btn::after, button.profile-btn::after {
       content: '';
       position: absolute;
       background: rgba(255, 255, 255, 0.3);
@@ -281,7 +281,7 @@
       transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
-    button.add-btn:active::after, button.cart-btn:active::after, button.back-btn:active::after {
+    button.add-btn:active::after, button.cart-btn:active::after, button.back-btn:active::after, button.profile-btn:active::after {
       transform: translate(-50%, -50%) scale(1);
       opacity: 1;
       transition: transform 0.3s ease, opacity 0.3s ease;
@@ -296,7 +296,26 @@
       gap: 8px;
       position: fixed;
       bottom: calc(16px + var(--safe-area-inset-bottom));
+      left: 16px;
+    }
+
+    button.profile-btn {
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      position: fixed;
+      bottom: calc(16px + var(--safe-area-inset-bottom));
       right: 16px;
+      background: none;
+      border: 2px solid var(--primary-color);
+    }
+
+    .footer-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     button.back-btn {
@@ -320,6 +339,49 @@
       color: #ffffff;
       font-weight: 600;
       font-size: 0.85em;
+    }
+
+    .profile-container {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--card-shadow);
+      text-align: center;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 16px;
+    }
+
+    .profile-name {
+      font-size: 1.2em;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .profile-balance {
+      font-size: 1.1em;
+      margin-bottom: 16px;
+    }
+
+    .profile-orders {
+      margin-top: 16px;
+      text-align: left;
+    }
+
+    .profile-orders h3 {
+      font-size: 1.1em;
+      margin-bottom: 8px;
+    }
+
+    .order-item {
+      background: var(--hover-bg);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
     }
 
     main::-webkit-scrollbar {
@@ -346,6 +408,9 @@
     <button id="cart-btn" class="cart-btn" style="display:none">
       🛒 Корзина <span id="cart-count" class="badge">0</span>
     </button>
+    <button id="profile-btn" class="profile-btn">
+      <img id="footer-avatar" class="footer-avatar" alt="Аватар пользователя" />
+    </button>
   </footer>
 
 <script>
@@ -354,9 +419,7 @@
     console.error("Telegram Web App не инициализирован");
   } else {
     tg.ready();
-    // Включаем системную кнопку "Назад"
     tg.BackButton.show();
-    // Обработка нажатия на системную кнопку "Назад" или крестик
     tg.onEvent('backButtonClicked', () => {
       if (state.level === "subcategories") {
         showCategories();
@@ -370,8 +433,15 @@
         } else {
           showCategories();
         }
+      } else if (state.level === "profile") {
+        if (state.subcategoryId) {
+          showProducts(state.subcategoryId);
+        } else if (state.categoryId) {
+          showSubcategories(state.categoryId);
+        } else {
+          showCategories();
+        }
       } else {
-        // Если на главном экране, показываем подтверждение выхода
         tg.showConfirm("Вы уверены, что хотите выйти?", (confirmed) => {
           if (confirmed) {
             tg.close();
@@ -379,7 +449,6 @@
         });
       }
     });
-    // Попытка включить полноэкранный режим
     if (tg.requestFullscreen && tg.requestFullscreen.isAvailable && !tg.isFullscreen()) {
       tg.requestFullscreen().then(() => {
         console.log("Полноэкранный режим активирован");
@@ -390,18 +459,15 @@
     } else {
       tg.expand();
     }
-    // Отключаем вертикальные свайпы
     if (tg.disableVerticalSwipes) {
       tg.disableVerticalSwipes();
     }
-    // Обработка события изменения полноэкранного режима
     tg.onEvent('fullscreenChanged', () => {
       console.log("Статус полноэкранного режима:", tg.isFullscreen());
       if (!tg.isFullscreen()) {
         tg.expand();
       }
     });
-    // Обработка изменения safe area
     tg.onEvent('safeAreaChanged', () => {
       console.log("Safe area изменился:", tg.safeAreaInset);
       if (tg.safeAreaInset) {
@@ -409,7 +475,6 @@
         document.documentElement.style.setProperty('--safe-area-inset-bottom', `${tg.safeAreaInset.bottom}px`);
       }
     });
-    // Инициализация safe area
     if (tg.safeAreaInset) {
       document.documentElement.style.setProperty('--safe-area-inset-top', `${tg.safeAreaInset.top}px`);
       document.documentElement.style.setProperty('--safe-area-inset-bottom', `${tg.safeAreaInset.bottom}px`);
@@ -457,6 +522,8 @@
   };
 
   let cart = {};
+  let balance = 0; // Баланс пользователя
+  let orders = []; // История заказов
   let state = { level: "categories", categoryId: null, subcategoryId: null, splashShown: false };
   const headerEl = document.getElementById("header");
   const headerTitleEl = document.getElementById("header-title");
@@ -464,6 +531,8 @@
   const contentEl = document.getElementById("content");
   const cartBtn = document.getElementById("cart-btn");
   const cartCountEl = document.getElementById("cart-count");
+  const profileBtn = document.getElementById("profile-btn");
+  const footerAvatarEl = document.getElementById("footer-avatar");
   const splashScreen = document.getElementById("splash-screen");
   const splashAvatar = document.getElementById("splash-avatar");
   const splashText = document.getElementById("splash-text");
@@ -503,16 +572,19 @@
       : "Добро пожаловать в BlackArchive Store!";
     splashAvatar.src = user?.photo_url || "https://via.placeholder.com/80";
     headerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/40";
+    footerAvatarEl.src = user?.photo_url || "https://via.placeholder.com/40";
     
     headerEl.classList.add("hidden");
     contentEl.classList.add("hidden");
     cartBtn.classList.add("hidden");
+    profileBtn.classList.add("hidden");
     tg.BackButton.hide();
 
     setTimeout(() => {
       splashScreen.classList.add("hidden");
       headerEl.classList.remove("hidden");
       contentEl.classList.remove("hidden");
+      profileBtn.classList.remove("hidden");
       state.splashShown = true;
       showCategories();
     }, 2500);
@@ -522,6 +594,7 @@
     state = { ...state, level: "categories", categoryId: null, subcategoryId: null };
     headerTitleEl.textContent = "BlackArchive Store";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    profileBtn.style.display = "inline-flex";
     tg.BackButton.hide();
 
     contentEl.innerHTML = "";
@@ -555,6 +628,7 @@
     state = { ...state, level: "subcategories", categoryId, subcategoryId: null };
     headerTitleEl.textContent = categoryId === "games" ? "Выберите игру" : "Выберите сервис";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    profileBtn.style.display = "inline-flex";
     tg.BackButton.show();
 
     contentEl.innerHTML = "";
@@ -587,6 +661,7 @@
     state = { ...state, level: "products", categoryId: state.categoryId, subcategoryId };
     headerTitleEl.textContent = "Товары";
     cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    profileBtn.style.display = "inline-flex";
     tg.BackButton.show();
 
     contentEl.innerHTML = "";
@@ -618,6 +693,7 @@
     state = { ...state, level: "cart", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
     headerTitleEl.textContent = "Корзина";
     cartBtn.style.display = "inline-flex";
+    profileBtn.style.display = "inline-flex";
     tg.BackButton.show();
 
     contentEl.innerHTML = "";
@@ -684,8 +760,64 @@
     });
     contentEl.appendChild(ul);
 
-    const orderBtn = createButton("🛒 Оформить заказ", submitOrder, { marginTop: "20px" });
+    const total = productList.reduce((sum, prod) => sum + prod.price * prod.qty, 0);
+    const orderBtn = createButton(`🛒 Оформить заказ (${total.toLocaleString()}₽)`, () => submitOrder(total), { marginTop: "20px" });
     contentEl.appendChild(orderBtn);
+  }
+
+  function showProfile() {
+    state = { ...state, level: "profile", categoryId: state.categoryId, subcategoryId: state.subcategoryId };
+    headerTitleEl.textContent = "Профиль";
+    cartBtn.style.display = Object.keys(cart).length > 0 ? "inline-flex" : "none";
+    profileBtn.style.display = "inline-flex";
+    tg.BackButton.show();
+
+    contentEl.innerHTML = "";
+    const backBtn = createButton("Назад", () => {
+      if (state.subcategoryId) {
+        showProducts(state.subcategoryId);
+      } else if (state.categoryId) {
+        showSubcategories(state.categoryId);
+      } else {
+        showCategories();
+      }
+    }, { className: "back-btn" });
+    contentEl.appendChild(backBtn);
+
+    const user = tg?.initDataUnsafe?.user;
+    const container = document.createElement("div");
+    container.className = "profile-container";
+    container.innerHTML = `
+      <img class="profile-avatar" src="${user?.photo_url || 'https://via.placeholder.com/80'}" alt="Аватар пользователя" />
+      <div class="profile-name">${user?.first_name || 'Пользователь'}</div>
+      <div class="profile-balance">Баланс: ${balance.toLocaleString()}₽</div>
+    `;
+    const topUpBtn = createButton("Пополнить баланс", topUpBalance, { marginTop: "16px" });
+    container.appendChild(topUpBtn);
+
+    const ordersDiv = document.createElement("div");
+    ordersDiv.className = "profile-orders";
+    ordersDiv.innerHTML = "<h3>История заказов</h3>";
+    if (orders.length === 0) {
+      ordersDiv.innerHTML += "<p>Нет заказов</p>";
+    } else {
+      const ul = document.createElement("ul");
+      ul.className = "products";
+      orders.forEach((order, index) => {
+        const total = order.items.reduce((sum, item) => sum + item.price * item.qty, 0);
+        const li = document.createElement("li");
+        li.className = "order-item";
+        li.innerHTML = `
+          <div>Заказ #${index + 1}</div>
+          <div>Дата: ${new Date(order.date).toLocaleString()}</div>
+          <div>Итого: ${total.toLocaleString()}₽</div>
+        `;
+        ul.appendChild(li);
+      });
+      ordersDiv.appendChild(ul);
+    }
+    container.appendChild(ordersDiv);
+    contentEl.appendChild(container);
   }
 
   function addToCart(productId, productName, productPrice) {
@@ -702,18 +834,61 @@
     cartCountEl.textContent = count;
   }
 
-  function submitOrder() {
+  function topUpBalance() {
+    if (!tg) return;
+    tg.showPopup({
+      title: "Пополнить баланс",
+      message: "Введите сумму пополнения (₽)",
+      buttons: [
+        { id: "100", type: "default", text: "100₽" },
+        { id: "500", type: "default", text: "500₽" },
+        { id: "1000", type: "default", text: "1000₽" },
+        { type: "cancel", text: "Отмена" }
+      ]
+    }, (buttonId) => {
+      if (buttonId && buttonId !== "cancel") {
+        const amount = parseInt(buttonId);
+        balance += amount;
+        tg.showAlert(`✅ Баланс пополнен на ${amount}₽! Новый баланс: ${balance}₽`);
+        showProfile();
+      }
+    });
+  }
+
+  function submitOrder(total) {
     if (Object.keys(cart).length === 0) {
       if (tg) tg.showAlert("Корзина пуста!");
       return;
     }
 
+    if (balance < total) {
+      if (tg) tg.showAlert(`Недостаточно средств! Ваш баланс: ${balance}₽, нужно: ${total}₽`);
+      return;
+    }
+
+    balance -= total;
+    const orderItems = [];
+    for (const pid in cart) {
+      let prod = null;
+      for (const catId in products) {
+        const p = products[catId].find(pr => pr.id === pid);
+        if (p) {
+          prod = p;
+          break;
+        }
+      }
+      if (prod) orderItems.push({ ...prod, qty: cart[pid] });
+    }
+
+    orders.push({ items: orderItems, date: new Date().toISOString() });
     if (tg) {
       tg.sendData(JSON.stringify({
         action: "submit_order",
-        items: cart
+        items: orderItems,
+        total: total,
+        balance: balance
       }));
-      tg.showAlert("✅ Заказ отправлен! Спасибо :)");
+      tg.showAlert("✅ Заказ оформлен! Спасибо :)");
     }
 
     cart = {};
@@ -722,6 +897,7 @@
   }
 
   cartBtn.onclick = showCart;
+  profileBtn.onclick = showProfile;
 
   if (tg && tg.themeParams) {
     const themeParams = tg.themeParams;
